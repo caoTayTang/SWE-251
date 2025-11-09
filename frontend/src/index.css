@@ -1,0 +1,26 @@
+/* src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap&subset=vietnamese');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap&subset=vietnamese');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  font-family: 'Inter', sans-serif;
+  /* font-family: 'Noto Sans', sans-serif; */
+}
+
+/* App-wide adjustments */
+@layer base {
+  body {
+    @apply font-sans text-gray-800 bg-gray-50;
+  }
+}
+
+:root {
+  --primary-color: #002855;
+  --accent-color: #0056b3;
+  --text-color: #1e1e1e;
+  --font-sans: 'Noto Sans', 'Inter', sans-serif;
+}
