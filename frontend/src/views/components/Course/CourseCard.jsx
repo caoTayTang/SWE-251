@@ -9,13 +9,19 @@ export default function CourseCard({ course, onEdit, onDelete, isTutor }) {
           <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600 transition">
             {course.title}
           </h3>
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-            course.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-          }`}>
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-medium ${
+              course.status === "active"
+                ? "bg-green-100 text-green-700"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
             {course.status === "active" ? "Đang hoạt động" : "Đã đóng"}
           </span>
         </div>
-        <p className="text-sm text-gray-600 line-clamp-2">{course.description}</p>
+        <p className="text-sm text-gray-600 line-clamp-2">
+          {course.description}
+        </p>
       </div>
 
       {/* Action buttons */}
@@ -36,10 +42,7 @@ export default function CourseCard({ course, onEdit, onDelete, isTutor }) {
 
         {/* Meeting Note chỉ hiện cho tutor */}
         {isTutor && (
-          <MeetingNoteButton
-            courseId={course.id}
-            className="flex-1"
-          />
+          <MeetingNoteButton courseId={course.id} className="flex-1" />
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 // Import hàm login từ API của chúng ta
-import { login as apiLogin } from "../api/api"; 
+import { login as apiLogin } from "../api/api";
 
 const AuthContext = createContext(null);
 
@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
     const checkLoggedIn = async () => {
       const storedToken = localStorage.getItem("authToken");
       const storedUser = localStorage.getItem("user");
-      
+
       if (storedToken && storedUser) {
         try {
           // Trong thực tế, bạn có thể gọi API /me để verify token ở đây
@@ -58,9 +58,8 @@ export function AuthProvider({ children }) {
 
       // Cập nhật state
       setUser(userData);
-      
-      return { success: true }; // Trả về thành công cho Login Page biết
 
+      return { success: true }; // Trả về thành công cho Login Page biết
     } catch (error) {
       // Ném lỗi ra để Login Page bắt (catch) và hiển thị
       throw error;

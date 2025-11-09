@@ -17,7 +17,7 @@ export default function ReportPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !details.trim()) return;
-    
+
     setLoading(true);
     setError(""); // Reset lỗi
 
@@ -26,13 +26,12 @@ export default function ReportPage() {
       await submitReport({
         userId: user?.id,
         title: title,
-        details: details
+        details: details,
       });
 
       // Thành công
       setDone(true);
       setTimeout(() => navigate(-1), 2000);
-
     } catch (err) {
       // Thất bại
       console.error("Lỗi gửi báo cáo:", err);

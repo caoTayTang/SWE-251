@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
-import { 
-  searchLibrary, 
-  getLibraryDocById, 
-  downloadLibraryDoc, 
-  attachDocToClass 
+import {
+  searchLibrary,
+  getLibraryDocById,
+  downloadLibraryDoc,
+  attachDocToClass,
 } from "../../../api/api";
-
 
 export default function LibraryPage() {
   const { user } = useAuth();
@@ -63,11 +62,13 @@ export default function LibraryPage() {
   const handleAttach = async (id) => {
     const className = prompt("Nhập tên lớp:");
     if (!className) return;
-    
+
     setLoading(true);
     try {
       const response = await attachDocToClass(id, className, user.id);
-      alert(`Đã đính kèm ${response.data.docName} cho lớp ${response.data.className}`);
+      alert(
+        `Đã đính kèm ${response.data.docName} cho lớp ${response.data.className}`
+      );
       setAttachedClass(response.data.className);
     } catch (err) {
       console.error(err);
@@ -81,7 +82,9 @@ export default function LibraryPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white shadow-xl rounded-2xl p-8 text-center w-[400px]">
-          <h1 className="text-xl font-bold text-[#002855] mb-4">Truy cập thư viện</h1>
+          <h1 className="text-xl font-bold text-[#002855] mb-4">
+            Truy cập thư viện
+          </h1>
           <p className="text-gray-600 mb-6">Chọn loại học liệu bạn muốn tải:</p>
           <div className="flex gap-4 justify-center">
             <button
@@ -122,9 +125,15 @@ export default function LibraryPage() {
 
         <div className="max-w-3xl mx-auto p-6">
           <div className="bg-white p-6 rounded-2xl shadow-md border">
-            <p><b>Tên:</b> {selected.name}</p>
-            <p><b>Loại:</b> {selected.type}</p>
-            <p><b>Kích thước:</b> {selected.size}</p>
+            <p>
+              <b>Tên:</b> {selected.name}
+            </p>
+            <p>
+              <b>Loại:</b> {selected.type}
+            </p>
+            <p>
+              <b>Kích thước:</b> {selected.size}
+            </p>
 
             <div className="mt-6 flex gap-4">
               <button

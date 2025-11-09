@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../../contexts/AuthContext';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
 
-import { useNavigate } from 'react-router-dom';
-import { Send, AlertCircle, CheckCircle } from 'lucide-react';
-import { getFeedbackTopics, submitFeedback } from '../../../api/api';
+import { useNavigate } from "react-router-dom";
+import { Send, AlertCircle, CheckCircle } from "lucide-react";
+import { getFeedbackTopics, submitFeedback } from "../../../api/api";
 
 export default function FeedbackPage() {
   const { user } = useAuth();
@@ -11,11 +11,11 @@ export default function FeedbackPage() {
 
   const [topics, setTopics] = useState([]);
   const [topicLoading, setTopicLoading] = useState(true);
-  const [topic, setTopic] = useState('');
-  const [content, setContent] = useState('');
+  const [topic, setTopic] = useState("");
+  const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
-  const [done, setDone]   = useState(false);
-  const [error, setError] = useState('');
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const loadTopics = async () => {
@@ -32,26 +32,24 @@ export default function FeedbackPage() {
     loadTopics();
   }, []);
 
-
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!topic || !content.trim()) return;
 
     setLoading(true);
-    setError(''); // Reset lỗi cũ
+    setError(""); // Reset lỗi cũ
 
     try {
       // Gọi API thật (giả lập)
       await submitFeedback({
         userId: user?.id, // Gửi kèm ID người gửi
         topic: topic,
-        content: content
+        content: content,
       });
 
       // Nếu thành công:
       setDone(true);
       setTimeout(() => navigate(-1), 2000);
-
     } catch (err) {
       // Nếu lỗi:
       console.error("Lỗi gửi feedback:", err);
@@ -66,8 +64,12 @@ const handleSubmit = async (e) => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-6">
         <div className="bg-white rounded-2xl shadow-xl p-10 max-w-md w-full text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Gửi thành công!</h2>
-          <p className="text-gray-600">Cảm ơn bạn đã góp ý. Hệ thống sẽ quay lại trang trước...</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Gửi thành công!
+          </h2>
+          <p className="text-gray-600">
+            Cảm ơn bạn đã góp ý. Hệ thống sẽ quay lại trang trước...
+          </p>
         </div>
       </div>
     );
@@ -79,7 +81,9 @@ const handleSubmit = async (e) => {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">Phản hồi / Đánh giá</h1>
+            <h1 className="text-xl font-bold text-gray-800">
+              Phản hồi / Đánh giá
+            </h1>
             <p className="text-sm text-gray-600">Xin chào, {user?.name}</p>
           </div>
           <button
@@ -98,14 +102,17 @@ const handleSubmit = async (e) => {
             {error}
           </div>
         )}
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-2xl shadow-lg p-8 space-y-6"
+        >
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Chọn chủ đề <span className="text-red-500">*</span>
             </label>
             <select
               value={topic}
-              onChange={e => setTopic(e.target.value)}
+              onChange={(e) => setTopic(e.target.value)}
               required
               disabled={topicLoading}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
@@ -115,9 +122,12 @@ const handleSubmit = async (e) => {
               </option>
 
               {/* Render topics từ state */}
-              {!topicLoading && topics.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
+              {!topicLoading &&
+                topics.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -127,7 +137,7 @@ const handleSubmit = async (e) => {
             </label>
             <textarea
               value={content}
-              onChange={e => setContent(e.target.value)}
+              onChange={(e) => setContent(e.target.value)}
               rows={6}
               required
               placeholder="Nhập chi tiết nội dung bạn muốn gửi..."
@@ -137,7 +147,10 @@ const handleSubmit = async (e) => {
 
           <div className="flex items-start gap-2 text-sm text-gray-600">
             <AlertCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
-            <span>Phản hồi của bạn sẽ được ban quản trị xem xét và phản hồi trong thời gian sớm nhất.</span>
+            <span>
+              Phản hồi của bạn sẽ được ban quản trị xem xét và phản hồi trong
+              thời gian sớm nhất.
+            </span>
           </div>
 
           <button

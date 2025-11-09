@@ -13,10 +13,30 @@ const chartData = [
 export default function AdminDashboard() {
   // mock stats
   const stats = [
-    { id: 1, title: "Người dùng", value: 345, icon: <Users className="w-6 h-6 text-blue-600" /> },
-    { id: 2, title: "Meeting chờ", value: 12, icon: <CalendarCheck className="w-6 h-6 text-green-600" /> },
-    { id: 3, title: "Feedback mới", value: 9, icon: <MessageSquare className="w-6 h-6 text-yellow-600" /> },
-    { id: 4, title: "Báo cáo", value: 5, icon: <FileText className="w-6 h-6 text-red-600" /> },
+    {
+      id: 1,
+      title: "Người dùng",
+      value: 345,
+      icon: <Users className="w-6 h-6 text-blue-600" />,
+    },
+    {
+      id: 2,
+      title: "Meeting chờ",
+      value: 12,
+      icon: <CalendarCheck className="w-6 h-6 text-green-600" />,
+    },
+    {
+      id: 3,
+      title: "Feedback mới",
+      value: 9,
+      icon: <MessageSquare className="w-6 h-6 text-yellow-600" />,
+    },
+    {
+      id: 4,
+      title: "Báo cáo",
+      value: 5,
+      icon: <FileText className="w-6 h-6 text-red-600" />,
+    },
   ];
 
   return (
@@ -35,7 +55,9 @@ export default function AdminDashboard() {
         </div>
 
         <div className="bg-white p-4 rounded-2xl shadow-sm border">
-          <h3 className="text-lg font-semibold text-gray-700 mb-3">Tổng quan nhanh</h3>
+          <h3 className="text-lg font-semibold text-gray-700 mb-3">
+            Tổng quan nhanh
+          </h3>
           <ul className="space-y-3 text-sm text-gray-600">
             <li>• Meeting chờ duyệt: 12</li>
             <li>• Feedback chưa xem: 9</li>

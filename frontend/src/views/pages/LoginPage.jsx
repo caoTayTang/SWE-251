@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { AlertCircle } from "lucide-react";
 import Header from "../components/Header";
-import { getAuthRoles  } from '../../api/api';
+import { getAuthRoles } from "../../api/api";
 
 export default function LoginPage() {
-  const [step, setStep] = useState('roleSelect'); // roleSelect, login, processing
-  const [selectedRole, setSelectedRole] = useState('');
-  const [bknetId, setBknetId] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [step, setStep] = useState("roleSelect"); // roleSelect, login, processing
+  const [selectedRole, setSelectedRole] = useState("");
+  const [bknetId, setBknetId] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [roles, setRoles] = useState([]);
 
@@ -31,24 +31,24 @@ export default function LoginPage() {
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
-    setStep('login');
-    setError('');  
+    setStep("login");
+    setError("");
   };
 
   const handleLogin = async () => {
-    setError('');
+    setError("");
     setLoading(true);
     try {
       await login(bknetId, password, selectedRole);
-      
+
       // Redirect based on role
-      if (selectedRole === 'tutor') {
-        navigate('/tutor/courses');
-      } else if (selectedRole === 'tutee') {
-        navigate('/tutee/courses');
-      } else if (selectedRole === 'admin') {
-        navigate('/admin/dashboard');
-      }    
+      if (selectedRole === "tutor") {
+        navigate("/tutor/courses");
+      } else if (selectedRole === "tutee") {
+        navigate("/tutee/courses");
+      } else if (selectedRole === "admin") {
+        navigate("/admin/dashboard");
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -57,11 +57,11 @@ export default function LoginPage() {
   };
 
   const handleBack = () => {
-    setStep('roleSelect');
-    setSelectedRole('');
-    setBknetId('');
-    setPassword('');
-    setError('');
+    setStep("roleSelect");
+    setSelectedRole("");
+    setBknetId("");
+    setPassword("");
+    setError("");
   };
 
   return (
@@ -72,9 +72,8 @@ export default function LoginPage() {
       //   backgroundSize: "auto 100%",
       // }}
     >
-
       <img
-        src={require('../../assets/slbk.jpg')}
+        src={require("../../assets/slbk.jpg")}
         alt="background"
         className="absolute inset-0 w-full h-full object-contain -z-10"
       />
@@ -91,22 +90,35 @@ export default function LoginPage() {
               {/* Left Panel - Illustration */}
               <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-12 text-white flex flex-col justify-center">
                 <div className="mb-8">
-                  <h1 className="text-4xl font-bold mb-4">HCMUT Tutor Support System</h1>
+                  <h1 className="text-4xl font-bold mb-4">
+                    HCMUT Tutor Support System
+                  </h1>
                   <p className="text-blue-100 text-lg">
-                    Hệ thống thông minh dược thiết kế và vận hành chương trình Tutor - Mentor dành cho sinh viên Trường Đại học Bách Khoa trong môi trường học nội và nói nơi tôi và mọi hoạt động hỗ trợ học tập giữa anh chị em với nhau ở trường
+                    Hệ thống thông minh dược thiết kế và vận hành chương trình
+                    Tutor - Mentor dành cho sinh viên Trường Đại học Bách Khoa
+                    trong môi trường học nội và nói nơi tôi và mọi hoạt động hỗ
+                    trợ học tập giữa anh chị em với nhau ở trường
                   </p>
                 </div>
                 <div className="space-y-4 text-sm text-blue-100">
                   <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-1">✓</div>
-                    <div>Kết nối sinh viên cần hỗ trợ với các Tutor có kinh nghiệm</div>
+                    <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-1">
+                      ✓
+                    </div>
+                    <div>
+                      Kết nối sinh viên cần hỗ trợ với các Tutor có kinh nghiệm
+                    </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-1">✓</div>
+                    <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-1">
+                      ✓
+                    </div>
                     <div>Quản lý buổi học và theo dõi tiến độ học tập</div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-1">✓</div>
+                    <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0 mt-1">
+                      ✓
+                    </div>
                     <div>Hệ thống đánh giá và phản hồi minh bạch</div>
                   </div>
                 </div>
@@ -114,11 +126,15 @@ export default function LoginPage() {
 
               {/* Right Panel - Form */}
               <div className="p-12">
-                {step === 'roleSelect' && (
+                {step === "roleSelect" && (
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">Chào mừng!</h2>
-                    <p className="text-gray-600 mb-8">Vui lòng chọn vai trò của bạn để tiếp tục</p>
-                    
+                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                      Chào mừng!
+                    </h2>
+                    <p className="text-gray-600 mb-8">
+                      Vui lòng chọn vai trò của bạn để tiếp tục
+                    </p>
+
                     <div className="space-y-3">
                       {roles.map((role) => (
                         <button
@@ -129,14 +145,16 @@ export default function LoginPage() {
                           <div className="font-semibold text-gray-800 group-hover:text-blue-600 mb-1">
                             {role.label}
                           </div>
-                          <div className="text-sm text-gray-500">{role.description}</div>
+                          <div className="text-sm text-gray-500">
+                            {role.description}
+                          </div>
                         </button>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {step === 'login' && (
+                {step === "login" && (
                   <div>
                     <button
                       onClick={handleBack}
@@ -145,9 +163,14 @@ export default function LoginPage() {
                       ← Quay lại chọn vai trò
                     </button>
 
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">Đăng nhập</h2>
+                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                      Đăng nhập
+                    </h2>
                     <p className="text-gray-600 mb-6">
-                      Vai trò: <span className="font-semibold text-blue-600">{selectedRole.toUpperCase()}</span>
+                      Vai trò:{" "}
+                      <span className="font-semibold text-blue-600">
+                        {selectedRole.toUpperCase()}
+                      </span>
                     </p>
 
                     {error && (
@@ -189,7 +212,9 @@ export default function LoginPage() {
                         disabled={loading}
                         className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg hover:shadow-xl"
                       >
-                        {loading ? 'Đang xác thực...' : 'Đăng nhập qua HCMUT_SSO'}
+                        {loading
+                          ? "Đang xác thực..."
+                          : "Đăng nhập qua HCMUT_SSO"}
                       </button>
                     </div>
 
@@ -204,15 +229,23 @@ export default function LoginPage() {
                     </div> */}
 
                     <p className="text-center text-sm text-gray-500 mt-6">
-                      Bạn chưa có tài khoản? <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">Đăng ký ngay</a>
+                      Bạn chưa có tài khoản?{" "}
+                      <a
+                        href="#"
+                        className="text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Đăng ký ngay
+                      </a>
                     </p>
                   </div>
                 )}
 
-                {step === 'processing' && (
+                {step === "processing" && (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Đang xác thực...</h3>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      Đang xác thực...
+                    </h3>
                     <p className="text-gray-600">Vui lòng đợi trong giây lát</p>
                   </div>
                 )}

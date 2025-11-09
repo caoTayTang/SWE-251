@@ -4,7 +4,7 @@ import {
   getTrackingClassList,
   getTrackingTuteeList,
   getTrackingClassDetails,
-  getTrackingTuteeDetails
+  getTrackingTuteeDetails,
 } from "../../../api/api";
 import { useAuth } from "../../../contexts/AuthContext";
 
@@ -12,10 +12,10 @@ export default function TrackingPage() {
   const { user } = useAuth();
 
   // State chính
-  const [mode, setMode] = useState(null); 
-  const [selectedId, setSelectedId] = useState(null); 
-  const [listData, setListData] = useState([]); 
-  const [detailData, setDetailData] = useState(null); 
+  const [mode, setMode] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [listData, setListData] = useState([]);
+  const [detailData, setDetailData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -29,10 +29,11 @@ export default function TrackingPage() {
       setDetailData(null); // Reset detail
 
       try {
-        const apiCall = (mode === 'tutee') 
-          ? getTrackingTuteeList(user.id) 
-          : getTrackingClassList(user.id);
-          
+        const apiCall =
+          mode === "tutee"
+            ? getTrackingTuteeList(user.id)
+            : getTrackingClassList(user.id);
+
         const response = await apiCall;
         setListData(response.data);
       } catch (err) {
@@ -43,7 +44,7 @@ export default function TrackingPage() {
     };
 
     loadList();
-  }, [mode, user]); 
+  }, [mode, user]);
 
   useEffect(() => {
     if (!selectedId || !mode) return;
@@ -52,10 +53,11 @@ export default function TrackingPage() {
       setLoading(true);
       setError("");
       try {
-        const apiCall = (mode === 'tutee')
-          ? getTrackingTuteeDetails(selectedId)
-          : getTrackingClassDetails(selectedId);
-        
+        const apiCall =
+          mode === "tutee"
+            ? getTrackingTuteeDetails(selectedId)
+            : getTrackingClassDetails(selectedId);
+
         const response = await apiCall;
         setDetailData(response.data);
       } catch (err) {
@@ -64,22 +66,23 @@ export default function TrackingPage() {
       }
       setLoading(false);
     };
-    
+
     loadDetail();
-  }, [selectedId, mode]); 
+  }, [selectedId, mode]);
 
   const handleSetMode = (newMode) => {
     setLoading(true); // Set loading ngay khi bấm
     setMode(newMode);
-  }
-
+  };
 
   // 1️⃣ Chưa chọn loại theo dõi
   if (!mode) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white shadow-xl rounded-2xl p-8 w-[400px] text-center">
-          <h1 className="text-xl font-semibold text-[#002855] mb-4">Chọn loại theo dõi</h1>
+          <h1 className="text-xl font-semibold text-[#002855] mb-4">
+            Chọn loại theo dõi
+          </h1>
           <p className="text-gray-600 mb-6">
             Vui lòng chọn bạn muốn theo dõi theo <b>Tutee</b> hay <b>Lớp</b>
           </p>
@@ -104,7 +107,6 @@ export default function TrackingPage() {
 
   // 2️⃣ Chọn danh sách Tutee / Lớp
   if (!selectedId) {
-
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="bg-white border-b shadow-sm">
@@ -113,7 +115,10 @@ export default function TrackingPage() {
               {mode === "tutee" ? "Danh sách Tutee" : "Danh sách Lớp"}
             </h1>
             <button
-              onClick={() => { setMode(null); setListData([]); }}
+              onClick={() => {
+                setMode(null);
+                setListData([]);
+              }}
               className="text-sm text-blue-700 hover:underline"
             >
               ← Quay lại chọn loại
@@ -129,22 +134,26 @@ export default function TrackingPage() {
             <p className="text-center text-gray-500">Không tìm thấy dữ liệu.</p>
           )}
 
-          {!loading && listData.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => { setLoading(true); setSelectedId(item.id); }}
-              className="bg-white shadow hover:shadow-md border rounded-xl p-4 cursor-pointer transition"
-            >
-              <h2 className="text-lg font-semibold text-gray-800">
-                {item.name}
-              </h2>
-              <p className="text-sm text-gray-600">
-                {mode === "tutee"
-                  ? `Thuộc lớp: ${item.class}`
-                  : `Số lượng học viên: ${item.tuteeCount}`}
-              </p>
-            </div>
-          ))}
+          {!loading &&
+            listData.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => {
+                  setLoading(true);
+                  setSelectedId(item.id);
+                }}
+                className="bg-white shadow hover:shadow-md border rounded-xl p-4 cursor-pointer transition"
+              >
+                <h2 className="text-lg font-semibold text-gray-800">
+                  {item.name}
+                </h2>
+                <p className="text-sm text-gray-600">
+                  {mode === "tutee"
+                    ? `Thuộc lớp: ${item.class}`
+                    : `Số lượng học viên: ${item.tuteeCount}`}
+                </p>
+              </div>
+            ))}
         </div>
       </div>
     );
@@ -189,9 +198,15 @@ export default function TrackingPage() {
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
           {mode === "tutee" ? (
             <>
-              <p><b>Tên:</b> {detailData.name}</p>
-              <p><b>Tiến độ:</b> {detailData.progress}</p>
-              <p><b>Hoạt động gần nhất:</b> {detailData.lastActive}</p>
+              <p>
+                <b>Tên:</b> {detailData.name}
+              </p>
+              <p>
+                <b>Tiến độ:</b> {detailData.progress}
+              </p>
+              <p>
+                <b>Hoạt động gần nhất:</b> {detailData.lastActive}
+              </p>
             </>
           ) : (
             <table className="w-full text-left">

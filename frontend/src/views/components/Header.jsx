@@ -5,7 +5,6 @@ import logoBK from "../../assets/logoBK.png";
 import { useAuth } from "../../contexts/AuthContext";
 import { getNotifications } from "../../api/api";
 
-
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
   const [showNoti, setShowNoti] = useState(false);
@@ -25,22 +24,28 @@ export default function Header() {
         }
         setNotiLoading(false);
       };
-      
+
       loadNotifications();
     }
   }, [isAuthenticated]); // Phụ thuộc vào "isAuthenticated"
 
-  const role = user ? user.role : 'guest';
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const role = user ? user.role : "guest";
+  const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
     <header className="bg-[#002855] text-white py-3 px-6 shadow-md">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Left: Logo + Trường */}
         <div className="flex items-center gap-3">
-          <img src={logoBK} alt="BK Logo" className="w-10 h-10 rounded-lg bg-white p-1" />
+          <img
+            src={logoBK}
+            alt="BK Logo"
+            className="w-10 h-10 rounded-lg bg-white p-1"
+          />
           <div>
-            <div className="text-xs font-light uppercase">Đại học Quốc gia TP. HCM</div>
+            <div className="text-xs font-light uppercase">
+              Đại học Quốc gia TP. HCM
+            </div>
             <div className="text-sm font-semibold tracking-wide">
               Trường Đại học Bách Khoa
             </div>
@@ -50,27 +55,64 @@ export default function Header() {
         {/* Middle: Dynamic Role Menu (Chỉ hiện khi đã đăng nhập) */}
         {isAuthenticated && (
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link to="/" className="hover:text-blue-300 transition">Trang chủ</Link>
+            <Link to="/" className="hover:text-blue-300 transition">
+              Trang chủ
+            </Link>
 
             {role === "tutor" && (
               <>
-                <Link to="/tutor/courses" className="hover:text-blue-300 transition">Khóa học</Link>
-                <Link to="/tutor/tracking" className="hover:text-blue-300 transition">Theo dõi</Link>
-                <Link to="/tutor/reports" className="hover:text-blue-300 transition">Báo cáo</Link>
+                <Link
+                  to="/tutor/courses"
+                  className="hover:text-blue-300 transition"
+                >
+                  Khóa học
+                </Link>
+                <Link
+                  to="/tutor/tracking"
+                  className="hover:text-blue-300 transition"
+                >
+                  Theo dõi
+                </Link>
+                <Link
+                  to="/tutor/reports"
+                  className="hover:text-blue-300 transition"
+                >
+                  Báo cáo
+                </Link>
               </>
             )}
 
             {role === "tutee" && (
               <>
-                <Link to="/tutee/courses" className="hover:text-blue-300 transition">Khóa học</Link>
-                <Link to="/tutee/feedback" className="hover:text-blue-300 transition">Feedback</Link>
-                <Link to="/tutee/library" className="hover:text-blue-300 transition">Tài liệu</Link>
+                <Link
+                  to="/tutee/courses"
+                  className="hover:text-blue-300 transition"
+                >
+                  Khóa học
+                </Link>
+                <Link
+                  to="/tutee/feedback"
+                  className="hover:text-blue-300 transition"
+                >
+                  Feedback
+                </Link>
+                <Link
+                  to="/tutee/library"
+                  className="hover:text-blue-300 transition"
+                >
+                  Tài liệu
+                </Link>
               </>
             )}
 
             {role === "admin" && (
               <>
-                <Link to="/admin/dashboard" className="hover:text-blue-300 transition">Tổng quan</Link>
+                <Link
+                  to="/admin/dashboard"
+                  className="hover:text-blue-300 transition"
+                >
+                  Tổng quan
+                </Link>
                 {/* ... (các link admin khác) ... */}
               </>
             )}
@@ -94,22 +136,31 @@ export default function Header() {
                   <div className="p-3 border-b font-semibold">Thông báo</div>
                   <ul className="max-h-60 overflow-y-auto">
                     {notiLoading ? (
-                      <li className="px-3 py-2 text-gray-500 text-sm">Đang tải...</li>
+                      <li className="px-3 py-2 text-gray-500 text-sm">
+                        Đang tải...
+                      </li>
                     ) : notifications.length > 0 ? (
-                      notifications.map(noti => (
-                        <li key={noti.id} className={`px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm ${noti.unread ? 'font-bold' : ''}`}>
+                      notifications.map((noti) => (
+                        <li
+                          key={noti.id}
+                          className={`px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm ${noti.unread ? "font-bold" : ""}`}
+                        >
                           <p>{noti.message}</p>
-                          <span className="text-gray-500 text-xs font-normal">{noti.time}</span>
+                          <span className="text-gray-500 text-xs font-normal">
+                            {noti.time}
+                          </span>
                         </li>
                       ))
                     ) : (
-                      <li className="px-3 py-2 text-gray-500 text-sm">Không có thông báo nào</li>
+                      <li className="px-3 py-2 text-gray-500 text-sm">
+                        Không có thông báo nào
+                      </li>
                     )}
                   </ul>
                 </div>
               )}
             </div>
-            
+
             {/* Logout Button */}
             <button
               onClick={logout} // 8. GẮN HÀM LOGOUT
@@ -119,12 +170,9 @@ export default function Header() {
             </button>
           </nav>
         )}
-        
+
         {/* 9. Nếu là 'guest' (chưa đăng nhập, như ở LoginPage) thì không hiện gì */}
-        {role === 'guest' && (
-           <div>{/* (Empty, or a "Login" button) */}</div>
-        )}
-        
+        {role === "guest" && <div>{/* (Empty, or a "Login" button) */}</div>}
       </div>
     </header>
   );

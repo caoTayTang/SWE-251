@@ -1,21 +1,21 @@
 // 1. Import data "cứng" từ kho
 // Chúng ta cần import thêm data mới
-import { 
-    mockCourses, 
-    mockEnrollments, 
-    mockUsers, 
-    mockRoles, 
-    mockNotifications, 
-    mockFeedbackTopics,
-    mockLibrary,
-    mockReports,
-    mockProgress,
-} from './mockData.js';
+import {
+  mockCourses,
+  mockEnrollments,
+  mockUsers,
+  mockRoles,
+  mockNotifications,
+  mockFeedbackTopics,
+  mockLibrary,
+  mockReports,
+  mockProgress,
+} from "./mockData.js";
 
 // 2. Helper giả lập độ trễ mạng (Rất quan trọng)
 const simulateDelay = (data) => {
   console.log("FAKE API: Đang gọi...", data);
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(() => {
       // 3. Luôn trả về { data: ... } để 100% giống axios
       resolve({ data: data });
@@ -46,7 +46,9 @@ export const login = (username, password, role) => {
     setTimeout(() => {
       // 1. Tìm user trong 'database' (mockUsers)
       // Chú ý: so sánh username chữ thường không phân biệt hoa thường
-      const user = mockUsers.find(u => u.username.toLowerCase() === username.toLowerCase());
+      const user = mockUsers.find(
+        (u) => u.username.toLowerCase() === username.toLowerCase()
+      );
 
       // 2. Kiểm tra mật khẩu
       if (!user || user.password !== password) {
@@ -56,7 +58,9 @@ export const login = (username, password, role) => {
 
       // 3. Kiểm tra role (Quan trọng: user phải có đúng role đã chọn)
       if (user.role !== role) {
-        reject(new Error(`Tài khoản này không có quyền truy cập role "${role}"`));
+        reject(
+          new Error(`Tài khoản này không có quyền truy cập role "${role}"`)
+        );
         return;
       }
 
@@ -66,14 +70,13 @@ export const login = (username, password, role) => {
       // 5. Trả về user info (không kèm password) và token
       // eslint-disable-next-line no-unused-vars
       const { password: _, ...userInfo } = user; // Loại bỏ password ra khỏi object trả về
-      
+
       resolve({
         data: {
           user: userInfo,
-          token: token
-        }
+          token: token,
+        },
       });
-
     }, 800); // Delay login lâu hơn chút cho "ngầu" (800ms)
   });
 };
@@ -84,7 +87,7 @@ export const login = (username, password, role) => {
  */
 export const getMyCourses = (tutorId) => {
   // Giả lập backend lọc theo tutorId
-  const courses = mockCourses.filter(c => c.tutorId === tutorId);
+  const courses = mockCourses.filter((c) => c.tutorId === tutorId);
   return simulateDelay(courses);
 };
 
@@ -98,7 +101,7 @@ export const createCourse = (courseData) => {
   const newCourseResponse = {
     id: Date.now(), // Backend sẽ tạo ID thật
     ...courseData,
-    status: 'active',
+    status: "active",
     enrolledCount: 0,
     createdAt: new Date().toISOString(), // Thêm timestamp
     updatedAt: new Date().toISOString(),
@@ -114,9 +117,9 @@ export const createCourse = (courseData) => {
  */
 export const updateCourse = (id, updatedData) => {
   // Giả lập backend trả về data đã được cập nhật
-  const originalCourse = mockCourses.find(c => c.id === id) || mockCourses[0];
-  const updatedResponse = { 
-    ...originalCourse, 
+  const originalCourse = mockCourses.find((c) => c.id === id) || mockCourses[0];
+  const updatedResponse = {
+    ...originalCourse,
     ...updatedData,
     id: id, // Đảm bảo ID đúng
     updatedAt: new Date().toISOString(), // Thêm timestamp
@@ -141,16 +144,16 @@ export const deleteCourse = (id) => {
 export const getCoursesForTutee = (tuteeId) => {
   // Giả lập backend lọc và join
   const enrolledCourseIds = new Set(
-    mockEnrollments.filter(e => e.tuteeId === tuteeId).map(e => e.courseId)
+    mockEnrollments.filter((e) => e.tuteeId === tuteeId).map((e) => e.courseId)
   );
 
   const tuteeViewCourses = mockCourses
-    .filter(c => c.status === 'active') // Chỉ thấy khóa active
-    .map(c => ({
+    .filter((c) => c.status === "active") // Chỉ thấy khóa active
+    .map((c) => ({
       ...c,
-      isEnrolled: enrolledCourseIds.has(c.id) // Check xem đã đăng ký chưa
+      isEnrolled: enrolledCourseIds.has(c.id), // Check xem đã đăng ký chưa
     }));
-    
+
   return simulateDelay(tuteeViewCourses);
 };
 
@@ -164,16 +167,16 @@ export const getCoursesForTutee = (tuteeId) => {
  */
 export const enrollCourse = (courseId, tuteeId) => {
   console.log(`FAKE API: Tutee ${tuteeId} đăng ký khóa học ${courseId}`);
-  
+
   // Giả lập backend tạo 1 enrollment mới và trả về
   const newEnrollment = {
     id: Date.now(), // ID của enrollment
     tuteeId: tuteeId,
     courseId: courseId,
     enrolledAt: new Date().toISOString(),
-    status: "active"
+    status: "active",
   };
-  
+
   // Giả lập data trả về (giống thật)
   // Backend có thể trả về chính enrollment đó hoặc khóa học đã cập nhật
   return simulateDelay(newEnrollment);
@@ -187,14 +190,14 @@ export const enrollCourse = (courseId, tuteeId) => {
  */
 export const unenrollCourse = (courseId, tuteeId) => {
   console.log(`FAKE API: Tutee ${tuteeId} HỦY đăng ký khóa học ${courseId}`);
-  
+
   // Giả lập backend xóa enrollment
   // Thường chỉ cần trả về success
   const response = {
     success: true,
-    message: `Đã hủy đăng ký khóa học ${courseId}`
+    message: `Đã hủy đăng ký khóa học ${courseId}`,
   };
-  
+
   return simulateDelay(response);
 };
 
@@ -235,8 +238,6 @@ export const submitFeedback = (feedbackData) => {
   return simulateDelay({ success: true });
 };
 
-
-
 /**
  * [GET] Tìm kiếm tài liệu
  * Endpoint: GET /api/library?type={mode}&q={keyword}
@@ -244,12 +245,12 @@ export const submitFeedback = (feedbackData) => {
 export const searchLibrary = (mode, keyword) => {
   // 'mode' là 'material' hoặc 'exam'
   const allDocs = mockLibrary[mode] || [];
-  
+
   // Giả lập logic search của backend
-  const results = allDocs.filter(d => 
+  const results = allDocs.filter((d) =>
     d.name.toLowerCase().includes(keyword.toLowerCase())
   );
-  
+
   return simulateDelay(results);
 };
 
@@ -259,8 +260,8 @@ export const searchLibrary = (mode, keyword) => {
  */
 export const getLibraryDocById = (id) => {
   const all = [...mockLibrary.material, ...mockLibrary.exam];
-  const doc = all.find(d => d.id === id);
-  
+  const doc = all.find((d) => d.id === id);
+
   if (doc) {
     return simulateDelay(doc);
   } else {
@@ -279,10 +280,13 @@ export const getLibraryDocById = (id) => {
  */
 export const downloadLibraryDoc = (id) => {
   const all = [...mockLibrary.material, ...mockLibrary.exam];
-  const doc = all.find(d => d.id === id);
+  const doc = all.find((d) => d.id === id);
   console.log(`FAKE API: Yêu cầu tải file ${doc.name}`);
   // Trong thực tế, server sẽ trả về URL hoặc file blob
-  return simulateDelay({ success: true, message: `Bắt đầu tải ${doc.name} (${doc.size})` });
+  return simulateDelay({
+    success: true,
+    message: `Bắt đầu tải ${doc.name} (${doc.size})`,
+  });
 };
 
 /**
@@ -294,13 +298,15 @@ export const downloadLibraryDoc = (id) => {
  */
 export const attachDocToClass = (docId, className, tutorId) => {
   const all = [...mockLibrary.material, ...mockLibrary.exam];
-  const doc = all.find(d => d.id === docId);
-  console.log(`FAKE API: Tutor ${tutorId} đính kèm ${doc.name} vào lớp ${className}`);
-  
-  return simulateDelay({ 
-    success: true, 
-    docName: doc.name, 
-    className: className 
+  const doc = all.find((d) => d.id === docId);
+  console.log(
+    `FAKE API: Tutor ${tutorId} đính kèm ${doc.name} vào lớp ${className}`
+  );
+
+  return simulateDelay({
+    success: true,
+    docName: doc.name,
+    className: className,
   });
 };
 
@@ -311,7 +317,7 @@ export const attachDocToClass = (docId, className, tutorId) => {
  */
 export const submitReport = (reportData) => {
   console.log("FAKE API: Nhận báo cáo:", reportData);
-  
+
   // Giả lập backend tạo 1 report mới
   const newReport = {
     id: Date.now(),
@@ -319,13 +325,12 @@ export const submitReport = (reportData) => {
     title: reportData.title,
     details: reportData.details,
     status: "new",
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   };
-  
+
   // Backend sẽ lưu vào DB và trả về data đã tạo
   return simulateDelay(newReport);
 };
-
 
 /**
  * [GET] Lấy danh sách LỚP của Tutor
@@ -334,13 +339,13 @@ export const submitReport = (reportData) => {
 export const getTrackingClassList = (tutorId) => {
   // 1. Lọc các khóa học của tutor
   const classes = mockCourses
-    .filter(c => c.tutorId === tutorId)
-    .map(c => ({
+    .filter((c) => c.tutorId === tutorId)
+    .map((c) => ({
       id: c.id,
       name: c.title,
-      tuteeCount: c.enrolledCount 
+      tuteeCount: c.enrolledCount,
     }));
-  
+
   return simulateDelay(classes);
 };
 
@@ -351,16 +356,16 @@ export const getTrackingClassList = (tutorId) => {
 export const getTrackingTuteeList = (tutorId) => {
   // Đây là một "JOIN" phức tạp mô phỏng backend
   const tutees = mockEnrollments
-    .map(enroll => {
-      const course = mockCourses.find(c => c.id === enroll.courseId);
+    .map((enroll) => {
+      const course = mockCourses.find((c) => c.id === enroll.courseId);
       // Chỉ lấy tutee nếu khóa học đó thuộc tutor này
       if (course && course.tutorId === tutorId) {
-        const tutee = mockUsers.find(u => u.id === enroll.tuteeId);
+        const tutee = mockUsers.find((u) => u.id === enroll.tuteeId);
         if (tutee) {
           return {
             id: tutee.id,
             name: tutee.fullName,
-            class: course.title // Tên lớp mà tutee đang học
+            class: course.title, // Tên lớp mà tutee đang học
           };
         }
       }
@@ -369,8 +374,10 @@ export const getTrackingTuteeList = (tutorId) => {
     .filter(Boolean); // Lọc bỏ các giá trị null
 
   // Loại bỏ trùng lặp (nếu 1 tutee học 2 lớp của cùng 1 tutor)
-  const uniqueTutees = [...new Map(tutees.map(item => [item['id'], item])).values()];
-  
+  const uniqueTutees = [
+    ...new Map(tutees.map((item) => [item["id"], item])).values(),
+  ];
+
   return simulateDelay(uniqueTutees);
 };
 
@@ -379,27 +386,28 @@ export const getTrackingTuteeList = (tutorId) => {
  * Endpoint: GET /api/tutor/tracking/classes/:id
  */
 export const getTrackingClassDetails = (classId) => {
-  const course = mockCourses.find(c => c.id === classId);
-  if (!course) return new Promise((_, reject) => reject(new Error("Không tìm thấy lớp")));
+  const course = mockCourses.find((c) => c.id === classId);
+  if (!course)
+    return new Promise((_, reject) => reject(new Error("Không tìm thấy lớp")));
 
   // Tìm tất cả Tutee trong lớp này
   const tuteesInClass = mockEnrollments
-    .filter(e => e.courseId === classId)
-    .map(enroll => {
-      const tutee = mockUsers.find(u => u.id === enroll.tuteeId);
-      const progress = mockProgress.find(p => p.enrollmentId === enroll.id);
-      
+    .filter((e) => e.courseId === classId)
+    .map((enroll) => {
+      const tutee = mockUsers.find((u) => u.id === enroll.tuteeId);
+      const progress = mockProgress.find((p) => p.enrollmentId === enroll.id);
+
       return {
         name: tutee?.fullName || "N/A",
-        progress: progress ? `${progress.progress}%` : "0%" // Format lại
+        progress: progress ? `${progress.progress}%` : "0%", // Format lại
       };
     });
 
   const classDetails = {
     name: course.title,
-    tutees: tuteesInClass
+    tutees: tuteesInClass,
   };
-  
+
   return simulateDelay(classDetails);
 };
 
@@ -408,23 +416,26 @@ export const getTrackingClassDetails = (classId) => {
  * Endpoint: GET /api/tutor/tracking/tutees/:id
  */
 export const getTrackingTuteeDetails = (tuteeId) => {
-  const tutee = mockUsers.find(u => u.id === tuteeId);
-  if (!tutee) return new Promise((_, reject) => reject(new Error("Không tìm thấy tutee")));
+  const tutee = mockUsers.find((u) => u.id === tuteeId);
+  if (!tutee)
+    return new Promise((_, reject) =>
+      reject(new Error("Không tìm thấy tutee"))
+    );
 
   // Tìm enrollment (và progress) GẦN NHẤT của tutee
   const lastEnrollment = mockEnrollments
-    .filter(e => e.tuteeId === tuteeId)
+    .filter((e) => e.tuteeId === tuteeId)
     .pop(); // Lấy cái cuối
-  
-  const progress = lastEnrollment 
-    ? mockProgress.find(p => p.enrollmentId === lastEnrollment.id) 
+
+  const progress = lastEnrollment
+    ? mockProgress.find((p) => p.enrollmentId === lastEnrollment.id)
     : null;
 
   const tuteeDetails = {
     name: tutee.fullName,
     progress: progress ? `Hoàn thành ${progress.progress}%` : "Chưa có tiến độ",
-    lastActive: progress ? progress.lastActive : "Chưa hoạt động"
+    lastActive: progress ? progress.lastActive : "Chưa hoạt động",
   };
-  
+
   return simulateDelay(tuteeDetails);
 };

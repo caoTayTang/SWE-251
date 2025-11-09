@@ -1,10 +1,20 @@
 import React from "react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 export default function OverviewChart({ data }) {
   return (
     <div className="bg-white p-4 rounded-2xl shadow-sm border">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">Hoạt động theo tháng</h3>
+      <h3 className="text-sm font-semibold text-gray-700 mb-3">
+        Hoạt động theo tháng
+      </h3>
       <div style={{ width: "100%", height: 280 }}>
         <ResponsiveContainer>
           <BarChart data={data}>

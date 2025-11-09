@@ -1,9 +1,11 @@
-import React from 'react';
-import { FileText } from 'lucide-react';
+import React from "react";
+import { FileText } from "lucide-react";
 
 export default function MeetingNoteButton() {
   const handleCreateMeetingNote = () => {
-    alert('Tạo meeting note cho khóa học này (thực tế sẽ link tới Google Docs)');
+    alert(
+      "Tạo meeting note cho khóa học này (thực tế sẽ link tới Google Docs)"
+    );
   };
 
   return (
