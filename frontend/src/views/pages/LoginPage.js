@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { AlertCircle, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { AlertCircle } from 'lucide-react';
 import Header from "../components/Header";
+import { getAuthRoles  } from '../../api/api';
 
 export default function LoginPage() {
   const [step, setStep] = useState('roleSelect'); // roleSelect, login, processing
@@ -11,75 +12,48 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [roles, setRoles] = useState([]);
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const roles = [
-    { id: 'tutor', label: 'Tutor', description: 'Dành cho sinh viên muốn dạy kèm' },
-    { id: 'tutee', label: 'Tutee', description: 'Dành cho sinh viên cần học thêm' },
-    { id: 'admin', label: 'Admin', description: 'Quản trị hệ thống' },
-  ];
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await getAuthRoles();
+        setRoles(response.data);
+      } catch (err) {
+        setError("Không thể tải danh sách vai trò");
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
-    if (role === 'tutor') {
-      setStep('login');
-    } else {
-      setStep('login');
-    }
-    setError('');
+    setStep('login');
+    setError('');  
   };
 
   const handleLogin = async () => {
     setError('');
     setLoading(true);
     try {
-      const result = await login(bknetId, password, selectedRole);
+      await login(bknetId, password, selectedRole);
       
       // Redirect based on role
-      if (result.user.role === 'tutor') {
+      if (selectedRole === 'tutor') {
         navigate('/tutor/courses');
-      } else if (result.user.role === 'tutee') {
+      } else if (selectedRole === 'tutee') {
         navigate('/tutee/courses');
-      } else if (result.user.role === 'admin') {
+      } else if (selectedRole === 'admin') {
         navigate('/admin/dashboard');
-      }
+      }    
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Mock authentication logic
-    if (!bknetId || !password) {
-      setError('Vui lòng nhập đầy đủ BKNetID và mật khẩu');
-      setLoading(false);
-      return;
-    }
-
-    // Simulate authentication scenarios
-    if (bknetId === 'wrong' || password === 'wrong') {
-      setError('Sai username hoặc mật khẩu');
-      setLoading(false);
-      return;
-    }
-
-    // Simulate SSO not available
-    if (bknetId === 'nosso') {
-      setError('Dịch vụ xác thực đăng gian đoạn (SSO không khả dụng)');
-      setLoading(false);
-      return;
-    }
-
-    // Success - would redirect to dashboard
-    setStep('processing');
-    setTimeout(() => {
-      alert('Đăng nhập thành công! (Sẽ chuyển đến trang chủ)');
-      setLoading(false);
-    }, 1000);
   };
 
   const handleBack = () => {

@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
+import { 
+  searchLibrary, 
+  getLibraryDocById, 
+  downloadLibraryDoc, 
+  attachDocToClass 
+} from "../../../api/api";
+
 
 export default function LibraryPage() {
   const { user } = useAuth();
@@ -9,58 +16,63 @@ export default function LibraryPage() {
   const [docs, setDocs] = useState([]);
   const [selected, setSelected] = useState(null);
   const [attachedClass, setAttachedClass] = useState("");
-
-  // Mock dữ liệu
-  const mockDB = {
-    material: [
-      { id: 1, name: "Giải tích 1 - Chương 1", type: "PDF", size: "2.1 MB" },
-      { id: 2, name: "Vật lý đại cương", type: "DOCX", size: "1.3 MB" },
-      { id: 3, name: "Hóa học cơ sở", type: "PPTX", size: "2.8 MB" },
-    ],
-    exam: [
-      { id: 4, name: "Đề thi Giải tích 1 - 2024", type: "PDF", size: "1.8 MB" },
-      { id: 5, name: "Đề thi Lập trình C - 2023", type: "DOCX", size: "1.2 MB" },
-    ],
-  };
+  const [error, setError] = useState(""); // Thêm state lỗi
 
   // Mock function
   const fakeDelay = (ms) => new Promise((res) => setTimeout(res, ms));
 
   const handleSearch = async () => {
     setLoading(true);
-    await fakeDelay(500);
-    const all = mockDB[mode] || [];
-    const result = all.filter((d) =>
-      d.name.toLowerCase().includes(keyword.toLowerCase())
-    );
-    setDocs(result);
+    setError("");
+    try {
+      const response = await searchLibrary(mode, keyword);
+      setDocs(response.data);
+    } catch (err) {
+      console.error(err);
+      setError("Không thể tìm kiếm.");
+    }
     setLoading(false);
   };
 
   const handleSelect = async (id) => {
     setLoading(true);
-    await fakeDelay(400);
-    const all = [...mockDB.material, ...mockDB.exam];
-    setSelected(all.find((d) => d.id === id));
+    setError("");
+    setAttachedClass(""); // Reset state
+    try {
+      const response = await getLibraryDocById(id);
+      setSelected(response.data);
+    } catch (err) {
+      console.error(err);
+      setError("Không thể tải chi tiết.");
+    }
     setLoading(false);
   };
 
   const handleDownload = async (id) => {
     setLoading(true);
-    await fakeDelay(700);
-    const doc = [...mockDB.material, ...mockDB.exam].find((d) => d.id === id);
-    alert(`Đã tải ${doc.name} (${doc.size})`);
+    try {
+      const response = await downloadLibraryDoc(id);
+      alert(response.data.message); // Lấy message từ API
+    } catch (err) {
+      console.error(err);
+      alert("Tải thất bại. Vui lòng thử lại.");
+    }
     setLoading(false);
   };
 
   const handleAttach = async (id) => {
     const className = prompt("Nhập tên lớp:");
     if (!className) return;
+    
     setLoading(true);
-    await fakeDelay(500);
-    const doc = [...mockDB.material, ...mockDB.exam].find((d) => d.id === id);
-    alert(`Đã đính kèm ${doc.name} cho lớp ${className}`);
-    setAttachedClass(className);
+    try {
+      const response = await attachDocToClass(id, className, user.id);
+      alert(`Đã đính kèm ${response.data.docName} cho lớp ${response.data.className}`);
+      setAttachedClass(response.data.className);
+    } catch (err) {
+      console.error(err);
+      alert("Đính kèm thất bại.");
+    }
     setLoading(false);
   };
 

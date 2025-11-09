@@ -1,26 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, BookOpen } from 'lucide-react';
 import CourseList from '../../components/Course/CouseList';
-import { mockAPI } from '../../../api/mockAPI';
+import { getCoursesForTutee, enrollCourse, unenrollCourse } from '../../../api/api';
+import { useUser } from '../../../contexts/AuthContext';
 
 export default function TuteeCourseEnrollment() {
+  const user = useUser();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => { loadCourses(); }, []);
 
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
-    const data = await mockAPI.getCoursesForTutee();
-    setCourses(data);
+    const response = await getCoursesForTutee(user.id);
+    setCourses(response.data);
     setLoading(false);
-  };
+  }, [user]);
 
-  const handleEnroll = async (id) => { setActionLoading(true); await mockAPI.enrollCourse(id); await loadCourses(); setActionLoading(false); };
-  const handleUnenroll = async (id) => { if(!window.confirm('Chắc chắn hủy?')) return; setActionLoading(true); await mockAPI.unenrollCourse(id); await loadCourses(); setActionLoading(false); };
+  useEffect(() => { 
+      loadCourses(); 
+  } , [loadCourses]);
+
+  const handleEnroll = async (id) => { 
+    setActionLoading(true); 
+    await enrollCourse(id, user.id); 
+    await loadCourses(); 
+    setActionLoading(false); 
+  };
+  const handleUnenroll = async (id) => { 
+    if(!window.confirm('Chắc chắn hủy?')) 
+      return; setActionLoading(true); 
+    await unenrollCourse(id, user.id); 
+    await loadCourses(); 
+    setActionLoading(false); 
+  };
 
   const filteredCourses = courses.filter(c => {
     const match = c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.description.toLowerCase().includes(searchQuery.toLowerCase());

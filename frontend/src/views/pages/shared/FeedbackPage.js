@@ -1,35 +1,64 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
 
 import { useNavigate } from 'react-router-dom';
 import { Send, AlertCircle, CheckCircle } from 'lucide-react';
-
-const topics = [
-  'Góp ý về nội dung khóa học',
-  'Báo lỗi hệ thống',
-  'Đánh giá giáo viên',
-  'Yêu cầu tính năng mới',
-  'Khác'
-];
+import { getFeedbackTopics, submitFeedback } from '../../../api/api';
 
 export default function FeedbackPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const [topics, setTopics] = useState([]);
+  const [topicLoading, setTopicLoading] = useState(true);
   const [topic, setTopic] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [done, setDone]   = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = async e => {
+  useEffect(() => {
+    const loadTopics = async () => {
+      try {
+        const response = await getFeedbackTopics();
+        setTopics(response.data);
+      } catch (err) {
+        console.error("Lỗi tải chủ đề:", err);
+        setError("Không thể tải danh sách chủ đề.");
+      } finally {
+        setTopicLoading(false);
+      }
+    };
+    loadTopics();
+  }, []);
+
+
+const handleSubmit = async (e) => {
     e.preventDefault();
     if (!topic || !content.trim()) return;
+
     setLoading(true);
-    // mock API delay
-    await new Promise(r => setTimeout(r, 1200));
-    setLoading(false);
-    setDone(true);
-    // auto back after 2s
-    setTimeout(() => navigate(-1), 2000);
+    setError(''); // Reset lỗi cũ
+
+    try {
+      // Gọi API thật (giả lập)
+      await submitFeedback({
+        userId: user?.id, // Gửi kèm ID người gửi
+        topic: topic,
+        content: content
+      });
+
+      // Nếu thành công:
+      setDone(true);
+      setTimeout(() => navigate(-1), 2000);
+
+    } catch (err) {
+      // Nếu lỗi:
+      console.error("Lỗi gửi feedback:", err);
+      setError("Gửi thất bại. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (done) {
@@ -64,6 +93,11 @@ export default function FeedbackPage() {
 
       {/* ------- Form ------- */}
       <div className="max-w-3xl mx-auto px-6 py-10">
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -73,10 +107,15 @@ export default function FeedbackPage() {
               value={topic}
               onChange={e => setTopic(e.target.value)}
               required
+              disabled={topicLoading}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             >
-              <option value="">-- Vui lòng chọn --</option>
-              {topics.map(t => (
+              <option value="">
+                {topicLoading ? "Đang tải chủ đề..." : "-- Vui lòng chọn --"}
+              </option>
+
+              {/* Render topics từ state */}
+              {!topicLoading && topics.map(t => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>

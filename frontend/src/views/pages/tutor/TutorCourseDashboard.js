@@ -1,9 +1,9 @@
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import CourseList from '../../components/Course/CouseList';
 import CourseForm from '../../components/Course/CourseForm';
-import { mockAPI } from '../../../api/mockAPI'; 
+import { getMyCourses } from '../../../api/api'; 
 import { Plus } from 'lucide-react';
-import { useUser } from '../../contexts/AuthContext';
+import { useUser } from '../../../contexts/AuthContext';
 
 export default function TutorCourseDashboard() {
   const user = useUser(); // <-- lấy user từ context
@@ -12,20 +12,22 @@ export default function TutorCourseDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState(null);
 
-  useEffect(() => {
-    loadCourses();
-  }, []);
-
-  const loadCourses = async () => {
+  const fetchData = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      const data = await mockAPI.getMyCourses();
-      setCourses(data);
+      const response = await getMyCourses(user.id); 
+      setCourses(response.data);
     } catch (error) {
-      console.error('Failed to load courses:', error);
+      console.error('Fail to load courses:', error);
     }
     setLoading(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]); 
+
 
   const startEdit = (course) => {
     setSelectedCourse(course);
@@ -49,7 +51,7 @@ export default function TutorCourseDashboard() {
             view={view}
             course={selectedCourse}
             setView={setView}
-            loadCourses={loadCourses}
+            loadCourses={fetchData}
             setSelectedCourse={setSelectedCourse}
           />
         )}
@@ -58,7 +60,7 @@ export default function TutorCourseDashboard() {
             courses={courses}
             setView={setView}
             startEdit={startEdit}
-            loadCourses={loadCourses}
+            loadCourses={fetchData}
             loading={loading}
             user={user}
           />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import SchedulePicker from './SchedulePicker';
 import { Plus } from 'lucide-react';
-import { mockAPI } from '../../../api/mockAPI'; // mock API
+import { createCourse, updateCourse } from '../../../api/api'; // mock API
 
 export default function CourseForm({ view, course, setView, loadCourses, setSelectedCourse }) {
   const [formData, setFormData] = useState({
@@ -57,10 +57,10 @@ export default function CourseForm({ view, course, setView, loadCourses, setSele
     try {
       setLoading(true);
       if (view === 'create') {
-        await mockAPI.createCourse(formData);
+        await createCourse(formData);
         alert('Tạo khóa học thành công!');
       } else {
-        await mockAPI.updateCourse(course.id, formData);
+        await updateCourse(course.id, formData);
         alert('Cập nhật khóa học thành công!');
       }
       resetForm();

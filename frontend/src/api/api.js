@@ -1,270 +1,430 @@
-// src/api/courseApi.js
-const API_BASE_URL = "http://localhost:8000"; // FastAPI backend
+// 1. Import data "cứng" từ kho
+// Chúng ta cần import thêm data mới
+import { 
+    mockCourses, 
+    mockEnrollments, 
+    mockUsers, 
+    mockRoles, 
+    mockNotifications, 
+    mockFeedbackTopics,
+    mockLibrary,
+    mockReports,
+    mockProgress,
+} from './mockData.js';
 
-const handleResponse = async (response) => {
-    const result = await response.json();
-    
-    // Check if response is successful
-    if (!response.ok) {
-        throw new Error(result.detail || result.message || 'API request failed');
-    }
-    
-    return result;
+// 2. Helper giả lập độ trễ mạng (Rất quan trọng)
+const simulateDelay = (data) => {
+  console.log("FAKE API: Đang gọi...", data);
+  return new Promise(resolve => {
+    setTimeout(() => {
+      // 3. Luôn trả về { data: ... } để 100% giống axios
+      resolve({ data: data });
+    }, 400); // Giả lập 400ms
+  });
 };
 
-// ============= AUTHENTICATION HELPER =============
-const getAuthToken = () => {
-    // Replace with your actual auth implementation
-    return localStorage.getItem('authToken') || null;
-};
-
-const getHeaders = () => {
-    const headers = {
-        "Content-Type": "application/json",
-    };
-    
-    const token = getAuthToken();
-    if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-    }
-    
-    return headers;
-};
-
-// ============= PUBLIC API CALLS =============
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
- * Get all courses with optional filters
- * @param {Object} filters - Optional filters
- * @param {string} filters.search - Search query
- * @param {string} filters.status - Course status (pending/confirmed/open/full/closed)
- * @param {string} filters.subject - Filter by subject
- * @param {string} filters.level - Filter by level (beginner/intermediate/advanced)
- * @param {string} filters.format - Filter by format (online/offline/hybrid)
+ * [GET] Lấy danh sách các role có thể đăng nhập
+ * Endpoint: GET /api/auth/roles
  */
-export const getCourses = async (filters = {}) => {
-    const queryParams = new URLSearchParams();
-    
-    if (filters.search) queryParams.append('search', filters.search);
-    if (filters.status) queryParams.append('status', filters.status);
-    if (filters.subject) queryParams.append('subject', filters.subject);
-    if (filters.level) queryParams.append('level', filters.level);
-    if (filters.format) queryParams.append('format', filters.format);
-    
-    const queryString = queryParams.toString();
-    const url = `${API_BASE_URL}/courses${queryString ? `?${queryString}` : ''}`;
-    
-    const response = await fetch(url, {
-        method: "GET",
-        headers: getHeaders(),
-    });
-    return handleResponse(response);
+export const getAuthRoles = () => {
+  return simulateDelay(mockRoles);
 };
 
 /**
- * Get detailed information about a specific course
- * @param {number} courseId - Course ID
+ * [POST] Đăng nhập
+ * Endpoint: POST /api/auth/login
+ * @param {string} username - (Là BKNetID cũ của bạn)
+ * @param {string} password
+ * @param {string} role - Role mà user chọn lúc login
  */
-export const getCourseDetail = async (courseId) => {
-    const response = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
-        method: "GET",
-        headers: getHeaders(),
-    });
-    return handleResponse(response);
-};
+export const login = (username, password, role) => {
+  console.log(`FAKE API: Login attempt: ${username} / *** / ${role}`);
 
-// ============= TUTOR API CALLS =============
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      // 1. Tìm user trong 'database' (mockUsers)
+      // Chú ý: so sánh username chữ thường không phân biệt hoa thường
+      const user = mockUsers.find(u => u.username.toLowerCase() === username.toLowerCase());
 
-/**
- * Get all courses created by the current tutor
- */
-export const getTutorCourses = async () => {
-    const response = await fetch(`${API_BASE_URL}/courses/tutor/my-courses`, {
-        method: "GET",
-        headers: getHeaders(),
-    });
-    return handleResponse(response);
-};
+      // 2. Kiểm tra mật khẩu
+      if (!user || user.password !== password) {
+        reject(new Error("Sai BKNetID hoặc mật khẩu"));
+        return;
+      }
 
-/**
- * Create a new course
- * @param {Object} courseData - Course information
- * @param {string} courseData.name - Course name/title
- * @param {string} courseData.description - Course description
- * @param {string} courseData.subject - Subject/topic
- * @param {string} courseData.level - Difficulty level (beginner/intermediate/advanced)
- * @param {number} courseData.maxSlots - Maximum number of students
- * @param {string} courseData.startTime - Start date (YYYY-MM-DD)
- * @param {string} courseData.endTime - End date (YYYY-MM-DD)
- * @param {string} courseData.schedule - Course schedule (e.g., "Thứ 2, 4, 6 - 18:00-20:00")
- * @param {string} courseData.format - Format (online/offline/hybrid)
- * @param {string} courseData.location - Location or meeting link
- */
-export const createCourse = async (courseData) => {
-    const response = await fetch(`${API_BASE_URL}/courses/tutor/create`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({
-            name: courseData.title || courseData.name,
-            description: courseData.description || "",
-            subject: courseData.subject || "",
-            level: courseData.level || "beginner",
-            maxSlots: parseInt(courseData.maxStudents || courseData.maxSlots),
-            startTime: courseData.startDate || courseData.startTime,
-            endTime: courseData.endDate || courseData.endTime,
-            schedule: courseData.schedule || "",
-            format: courseData.format || "online",
-            location: courseData.location || "",
-        }),
-    });
-    return handleResponse(response);
+      // 3. Kiểm tra role (Quan trọng: user phải có đúng role đã chọn)
+      if (user.role !== role) {
+        reject(new Error(`Tài khoản này không có quyền truy cập role "${role}"`));
+        return;
+      }
+
+      // 4. Tạo token giả
+      const token = `fake-jwt-token-${user.id}-${Date.now()}`;
+
+      // 5. Trả về user info (không kèm password) và token
+      // eslint-disable-next-line no-unused-vars
+      const { password: _, ...userInfo } = user; // Loại bỏ password ra khỏi object trả về
+      
+      resolve({
+        data: {
+          user: userInfo,
+          token: token
+        }
+      });
+
+    }, 800); // Delay login lâu hơn chút cho "ngầu" (800ms)
+  });
 };
 
 /**
- * Update an existing course
- * @param {number} courseId - Course ID
- * @param {Object} courseData - Updated course information
+ * [GET] Lấy danh sách khóa học của tutor
+ * Endpoint: GET /api/tutor/courses
  */
-export const updateCourse = async (courseId, courseData) => {
-    const payload = {};
+export const getMyCourses = (tutorId) => {
+  // Giả lập backend lọc theo tutorId
+  const courses = mockCourses.filter(c => c.tutorId === tutorId);
+  return simulateDelay(courses);
+};
+
+/**
+ * [POST] Tạo một khóa học mới
+ * Endpoint: POST /api/courses
+ * @param {object} courseData - Data của khóa học mới
+ */
+export const createCourse = (courseData) => {
+  // Giả lập backend nhận data và trả về data đó (kèm ID giả)
+  const newCourseResponse = {
+    id: Date.now(), // Backend sẽ tạo ID thật
+    ...courseData,
+    status: 'active',
+    enrolledCount: 0,
+    createdAt: new Date().toISOString(), // Thêm timestamp
+    updatedAt: new Date().toISOString(),
+  };
+  return simulateDelay(newCourseResponse);
+};
+
+/**
+ * [PUT] Cập nhật khóa học
+ * Endpoint: PUT /api/courses/:id
+ * @param {number} id - ID của khóa học
+ * @param {object} updatedData - Data cập nhật
+ */
+export const updateCourse = (id, updatedData) => {
+  // Giả lập backend trả về data đã được cập nhật
+  const originalCourse = mockCourses.find(c => c.id === id) || mockCourses[0];
+  const updatedResponse = { 
+    ...originalCourse, 
+    ...updatedData,
+    id: id, // Đảm bảo ID đúng
+    updatedAt: new Date().toISOString(), // Thêm timestamp
+  };
+  return simulateDelay(updatedResponse);
+};
+
+/**
+ * [DELETE] Xóa một khóa học
+ * Endpoint: DELETE /api/courses/:id
+ * @param {number} id - ID của khóa học
+ */
+export const deleteCourse = (id) => {
+  // Giả lập backend trả về thông báo thành công
+  return simulateDelay({ success: true, message: `Đã xóa khóa học ${id}` });
+};
+
+/**
+ * [GET] Lấy danh sách khóa học (cho Tutee)
+ * Endpoint: GET /api/courses
+ */
+export const getCoursesForTutee = (tuteeId) => {
+  // Giả lập backend lọc và join
+  const enrolledCourseIds = new Set(
+    mockEnrollments.filter(e => e.tuteeId === tuteeId).map(e => e.courseId)
+  );
+
+  const tuteeViewCourses = mockCourses
+    .filter(c => c.status === 'active') // Chỉ thấy khóa active
+    .map(c => ({
+      ...c,
+      isEnrolled: enrolledCourseIds.has(c.id) // Check xem đã đăng ký chưa
+    }));
     
-    // Map frontend fields to backend fields
-    if (courseData.title) payload.name = courseData.title;
-    if (courseData.name) payload.name = courseData.name;
-    if (courseData.description) payload.description = courseData.description;
-    if (courseData.subject) payload.subject = courseData.subject;
-    if (courseData.level) payload.level = courseData.level;
-    if (courseData.maxStudents) payload.maxSlots = parseInt(courseData.maxStudents);
-    if (courseData.maxSlots) payload.maxSlots = parseInt(courseData.maxSlots);
-    if (courseData.startDate) payload.startTime = courseData.startDate;
-    if (courseData.startTime) payload.startTime = courseData.startTime;
-    if (courseData.endDate) payload.endTime = courseData.endDate;
-    if (courseData.endTime) payload.endTime = courseData.endTime;
-    if (courseData.schedule) payload.schedule = courseData.schedule;
-    if (courseData.format) payload.format = courseData.format;
-    if (courseData.location) payload.location = courseData.location;
-    if (courseData.status) payload.status = courseData.status;
-    
-    const response = await fetch(`${API_BASE_URL}/courses/tutor/${courseId}`, {
-        method: "PUT",
-        headers: getHeaders(),
-        body: JSON.stringify(payload),
-    });
-    return handleResponse(response);
+  return simulateDelay(tuteeViewCourses);
+};
+
+// --- ĐIỀN VÀO 2 HÀM BẠN HỎI ---
+
+/**
+ * [POST] Tutee đăng ký khóa học
+ * Endpoint: POST /api/enrollments
+ * @param {number} courseId - ID của khóa học
+ * @param {number} tuteeId - ID của tutee (người dùng hiện tại)
+ */
+export const enrollCourse = (courseId, tuteeId) => {
+  console.log(`FAKE API: Tutee ${tuteeId} đăng ký khóa học ${courseId}`);
+  
+  // Giả lập backend tạo 1 enrollment mới và trả về
+  const newEnrollment = {
+    id: Date.now(), // ID của enrollment
+    tuteeId: tuteeId,
+    courseId: courseId,
+    enrolledAt: new Date().toISOString(),
+    status: "active"
+  };
+  
+  // Giả lập data trả về (giống thật)
+  // Backend có thể trả về chính enrollment đó hoặc khóa học đã cập nhật
+  return simulateDelay(newEnrollment);
 };
 
 /**
- * Delete a course
- * @param {number} courseId - Course ID to delete
+ * [DELETE] Tutee hủy đăng ký khóa học
+ * Endpoint: DELETE /api/enrollments/:courseId
+ * @param {number} courseId - ID của khóa học
+ * @param {number} tuteeId - ID của tutee (người dùng hiện tại)
  */
-export const deleteCourse = async (courseId) => {
-    const response = await fetch(`${API_BASE_URL}/courses/tutor/${courseId}`, {
-        method: "DELETE",
-        headers: getHeaders(),
-    });
-    return handleResponse(response);
+export const unenrollCourse = (courseId, tuteeId) => {
+  console.log(`FAKE API: Tutee ${tuteeId} HỦY đăng ký khóa học ${courseId}`);
+  
+  // Giả lập backend xóa enrollment
+  // Thường chỉ cần trả về success
+  const response = {
+    success: true,
+    message: `Đã hủy đăng ký khóa học ${courseId}`
+  };
+  
+  return simulateDelay(response);
 };
 
 /**
- * Get list of students enrolled in a course
- * @param {number} courseId - Course ID
+ * [GET] Lấy thông báo của user
+ * Endpoint: GET /api/notifications
  */
-export const getCourseStudents = async (courseId) => {
-    const response = await fetch(`${API_BASE_URL}/courses/tutor/${courseId}/students`, {
-        method: "GET",
-        headers: getHeaders(),
-    });
-    return handleResponse(response);
-};
-
-// ============= TUTEE API CALLS =============
-
-/**
- * Get courses that the current tutee is enrolled in
- */
-export const getEnrolledCourses = async () => {
-    const response = await fetch(`${API_BASE_URL}/courses/tutee/enrolled`, {
-        method: "GET",
-        headers: getHeaders(),
-    });
-    return handleResponse(response);
+export const getNotifications = () => {
+  // Giả lập backend chỉ trả về 3 thông báo mới nhất
+  return simulateDelay(mockNotifications);
 };
 
 /**
- * Enroll in a course
- * @param {number} courseId - Course ID to enroll in
+ * [POST] Đánh dấu đã đọc thông báo
+ * Endpoint: POST /api/notifications/read
  */
-export const enrollInCourse = async (courseId) => {
-    const response = await fetch(`${API_BASE_URL}/courses/${courseId}/enroll`, {
-        method: "POST",
-        headers: getHeaders(),
-    });
-    return handleResponse(response);
+export const markNotificationsAsRead = () => {
+  console.log("FAKE API: Đánh dấu đã đọc thông báo");
+  return simulateDelay({ success: true });
 };
 
 /**
- * Unenroll from a course
- * @param {number} courseId - Course ID to unenroll from
+ * [GET] Lấy danh sách chủ đề feedback
+ * Endpoint: GET /api/feedback/topics
  */
-export const unenrollFromCourse = async (courseId) => {
-    const response = await fetch(`${API_BASE_URL}/courses/${courseId}/unenroll`, {
-        method: "POST",
-        headers: getHeaders(),
-    });
-    return handleResponse(response);
+export const getFeedbackTopics = () => {
+  return simulateDelay(mockFeedbackTopics);
 };
-
-// ============= ADMIN API CALLS (Optional) =============
 
 /**
- * Update course status (Admin only)
- * @param {number} courseId - Course ID
- * @param {string} status - New status (pending/confirmed/open/full/closed)
+ * [POST] Gửi feedback mới
+ * Endpoint: POST /api/feedback
+ * @param {object} feedbackData - { userId, topic, content }
  */
-export const updateCourseStatus = async (courseId, status) => {
-    const response = await fetch(`${API_BASE_URL}/courses/${courseId}/status?status=${status}`, {
-        method: "PATCH",
-        headers: getHeaders(),
-    });
-    return handleResponse(response);
+export const submitFeedback = (feedbackData) => {
+  console.log("FAKE API: Nhận feedback:", feedbackData);
+  // Giả lập server trả về success
+  return simulateDelay({ success: true });
 };
 
-// ============= NOTIFICATIONS =============
+
 
 /**
- * Get notifications for the current user
+ * [GET] Tìm kiếm tài liệu
+ * Endpoint: GET /api/library?type={mode}&q={keyword}
  */
-export const getNotifications = async () => {
-    const response = await fetch(`${API_BASE_URL}/notifications`, {
-        method: "GET",
-        headers: getHeaders(),
+export const searchLibrary = (mode, keyword) => {
+  // 'mode' là 'material' hoặc 'exam'
+  const allDocs = mockLibrary[mode] || [];
+  
+  // Giả lập logic search của backend
+  const results = allDocs.filter(d => 
+    d.name.toLowerCase().includes(keyword.toLowerCase())
+  );
+  
+  return simulateDelay(results);
+};
+
+/**
+ * [GET] Lấy chi tiết tài liệu
+ * Endpoint: GET /api/library/:id
+ */
+export const getLibraryDocById = (id) => {
+  const all = [...mockLibrary.material, ...mockLibrary.exam];
+  const doc = all.find(d => d.id === id);
+  
+  if (doc) {
+    return simulateDelay(doc);
+  } else {
+    // Giả lập 404
+    return new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("Không tìm thấy tài liệu"));
+      }, 400);
     });
-    return handleResponse(response);
+  }
 };
 
-// Export all functions as a single API object
-const CourseAPI = {
-    // Public functions
-    getCourses,
-    getCourseDetail,
-    
-    // Tutor functions
-    getTutorCourses,
-    createCourse,
-    updateCourse,
-    deleteCourse,
-    getCourseStudents,
-    
-    // Tutee functions
-    getEnrolledCourses,
-    enrollInCourse,
-    unenrollFromCourse,
-    
-    // Admin functions
-    updateCourseStatus,
-    
-    // Notifications
-    getNotifications,
+/**
+ * [POST] Tải tài liệu
+ * Endpoint: POST /api/library/:id/download
+ */
+export const downloadLibraryDoc = (id) => {
+  const all = [...mockLibrary.material, ...mockLibrary.exam];
+  const doc = all.find(d => d.id === id);
+  console.log(`FAKE API: Yêu cầu tải file ${doc.name}`);
+  // Trong thực tế, server sẽ trả về URL hoặc file blob
+  return simulateDelay({ success: true, message: `Bắt đầu tải ${doc.name} (${doc.size})` });
 };
 
-export default CourseAPI;
+/**
+ * [POST] Đính kèm tài liệu vào lớp
+ * Endpoint: POST /api/library/attach
+ * @param {number} docId - ID tài liệu
+ * @param {string} className - Tên lớp (hoặc classId)
+ * @param {number} tutorId - ID của tutor
+ */
+export const attachDocToClass = (docId, className, tutorId) => {
+  const all = [...mockLibrary.material, ...mockLibrary.exam];
+  const doc = all.find(d => d.id === docId);
+  console.log(`FAKE API: Tutor ${tutorId} đính kèm ${doc.name} vào lớp ${className}`);
+  
+  return simulateDelay({ 
+    success: true, 
+    docName: doc.name, 
+    className: className 
+  });
+};
+
+/**
+ * [POST] Gửi báo cáo sự cố/tiến độ
+ * Endpoint: POST /api/reports
+ * @param {object} reportData - { userId, title, details }
+ */
+export const submitReport = (reportData) => {
+  console.log("FAKE API: Nhận báo cáo:", reportData);
+  
+  // Giả lập backend tạo 1 report mới
+  const newReport = {
+    id: Date.now(),
+    reporterId: reportData.userId,
+    title: reportData.title,
+    details: reportData.details,
+    status: "new",
+    createdAt: new Date().toISOString()
+  };
+  
+  // Backend sẽ lưu vào DB và trả về data đã tạo
+  return simulateDelay(newReport);
+};
+
+
+/**
+ * [GET] Lấy danh sách LỚP của Tutor
+ * Endpoint: GET /api/tutor/tracking/classes
+ */
+export const getTrackingClassList = (tutorId) => {
+  // 1. Lọc các khóa học của tutor
+  const classes = mockCourses
+    .filter(c => c.tutorId === tutorId)
+    .map(c => ({
+      id: c.id,
+      name: c.title,
+      tuteeCount: c.enrolledCount 
+    }));
+  
+  return simulateDelay(classes);
+};
+
+/**
+ * [GET] Lấy danh sách TUTEE của Tutor
+ * Endpoint: GET /api/tutor/tracking/tutees
+ */
+export const getTrackingTuteeList = (tutorId) => {
+  // Đây là một "JOIN" phức tạp mô phỏng backend
+  const tutees = mockEnrollments
+    .map(enroll => {
+      const course = mockCourses.find(c => c.id === enroll.courseId);
+      // Chỉ lấy tutee nếu khóa học đó thuộc tutor này
+      if (course && course.tutorId === tutorId) {
+        const tutee = mockUsers.find(u => u.id === enroll.tuteeId);
+        if (tutee) {
+          return {
+            id: tutee.id,
+            name: tutee.fullName,
+            class: course.title // Tên lớp mà tutee đang học
+          };
+        }
+      }
+      return null;
+    })
+    .filter(Boolean); // Lọc bỏ các giá trị null
+
+  // Loại bỏ trùng lặp (nếu 1 tutee học 2 lớp của cùng 1 tutor)
+  const uniqueTutees = [...new Map(tutees.map(item => [item['id'], item])).values()];
+  
+  return simulateDelay(uniqueTutees);
+};
+
+/**
+ * [GET] Lấy chi tiết LỚP (danh sách Tutee trong lớp)
+ * Endpoint: GET /api/tutor/tracking/classes/:id
+ */
+export const getTrackingClassDetails = (classId) => {
+  const course = mockCourses.find(c => c.id === classId);
+  if (!course) return new Promise((_, reject) => reject(new Error("Không tìm thấy lớp")));
+
+  // Tìm tất cả Tutee trong lớp này
+  const tuteesInClass = mockEnrollments
+    .filter(e => e.courseId === classId)
+    .map(enroll => {
+      const tutee = mockUsers.find(u => u.id === enroll.tuteeId);
+      const progress = mockProgress.find(p => p.enrollmentId === enroll.id);
+      
+      return {
+        name: tutee?.fullName || "N/A",
+        progress: progress ? `${progress.progress}%` : "0%" // Format lại
+      };
+    });
+
+  const classDetails = {
+    name: course.title,
+    tutees: tuteesInClass
+  };
+  
+  return simulateDelay(classDetails);
+};
+
+/**
+ * [GET] Lấy chi tiết TUTEE
+ * Endpoint: GET /api/tutor/tracking/tutees/:id
+ */
+export const getTrackingTuteeDetails = (tuteeId) => {
+  const tutee = mockUsers.find(u => u.id === tuteeId);
+  if (!tutee) return new Promise((_, reject) => reject(new Error("Không tìm thấy tutee")));
+
+  // Tìm enrollment (và progress) GẦN NHẤT của tutee
+  const lastEnrollment = mockEnrollments
+    .filter(e => e.tuteeId === tuteeId)
+    .pop(); // Lấy cái cuối
+  
+  const progress = lastEnrollment 
+    ? mockProgress.find(p => p.enrollmentId === lastEnrollment.id) 
+    : null;
+
+  const tuteeDetails = {
+    name: tutee.fullName,
+    progress: progress ? `Hoàn thành ${progress.progress}%` : "Chưa có tiến độ",
+    lastActive: progress ? progress.lastActive : "Chưa hoạt động"
+  };
+  
+  return simulateDelay(tuteeDetails);
+};

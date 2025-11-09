@@ -1,46 +1,78 @@
 // src/views/pages/shared/TrackingPage.js
-import React, { useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import React, { useState, useEffect } from "react";
+import {
+  getTrackingClassList,
+  getTrackingTuteeList,
+  getTrackingClassDetails,
+  getTrackingTuteeDetails
+} from "../../../api/api";
+import { useAuth } from "../../../contexts/AuthContext";
 
 export default function TrackingPage() {
   const { user } = useAuth();
 
   // State chính
-  const [mode, setMode] = useState(null); // "tutee" | "class"
-  const [selected, setSelected] = useState(null);
+  const [mode, setMode] = useState(null); 
+  const [selectedId, setSelectedId] = useState(null); 
+  const [listData, setListData] = useState([]); 
+  const [detailData, setDetailData] = useState(null); 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Mock data (sau này gọi API)
-  const classList = [
-    { id: 1, name: "Lớp Giải tích 1", tuteeCount: 12 },
-    { id: 2, name: "Lớp Lập trình C++", tuteeCount: 8 },
-  ];
+  useEffect(() => {
+    if (!mode || !user) return; // Chỉ chạy khi có mode và user
 
-  const tuteeList = [
-    { id: 1, name: "Nguyễn Văn A", class: "Giải tích 1" },
-    { id: 2, name: "Trần Thị B", class: "Lập trình C++" },
-  ];
+    const loadList = async () => {
+      setLoading(true);
+      setError("");
+      setSelectedId(null); // Reset detail
+      setDetailData(null); // Reset detail
 
-  const tuteeDetails = {
-    1: { name: "Nguyễn Văn A", progress: "Hoàn thành 70%", lastActive: "2025-10-25" },
-    2: { name: "Trần Thị B", progress: "Hoàn thành 45%", lastActive: "2025-10-26" },
-  };
+      try {
+        const apiCall = (mode === 'tutee') 
+          ? getTrackingTuteeList(user.id) 
+          : getTrackingClassList(user.id);
+          
+        const response = await apiCall;
+        setListData(response.data);
+      } catch (err) {
+        setError("Lỗi tải danh sách.");
+        console.error(err);
+      }
+      setLoading(false);
+    };
 
-  const classDetails = {
-    1: {
-      name: "Giải tích 1",
-      tutees: [
-        { name: "Nguyễn Văn A", progress: "70%" },
-        { name: "Phạm C", progress: "60%" },
-      ],
-    },
-    2: {
-      name: "Lập trình C++",
-      tutees: [
-        { name: "Trần Thị B", progress: "45%" },
-        { name: "Lê D", progress: "90%" },
-      ],
-    },
-  };
+    loadList();
+  }, [mode, user]); 
+
+  useEffect(() => {
+    if (!selectedId || !mode) return;
+
+    const loadDetail = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const apiCall = (mode === 'tutee')
+          ? getTrackingTuteeDetails(selectedId)
+          : getTrackingClassDetails(selectedId);
+        
+        const response = await apiCall;
+        setDetailData(response.data);
+      } catch (err) {
+        setError("Lỗi tải chi tiết.");
+        console.error(err);
+      }
+      setLoading(false);
+    };
+    
+    loadDetail();
+  }, [selectedId, mode]); 
+
+  const handleSetMode = (newMode) => {
+    setLoading(true); // Set loading ngay khi bấm
+    setMode(newMode);
+  }
+
 
   // 1️⃣ Chưa chọn loại theo dõi
   if (!mode) {
@@ -53,13 +85,13 @@ export default function TrackingPage() {
           </p>
           <div className="flex gap-4 justify-center">
             <button
-              onClick={() => setMode("tutee")}
+              onClick={() => handleSetMode("tutee")}
               className="bg-[#002855] text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition"
             >
               Theo dõi Tutee
             </button>
             <button
-              onClick={() => setMode("class")}
+              onClick={() => handleSetMode("class")}
               className="bg-[#002855] text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition"
             >
               Theo dõi Lớp
@@ -71,8 +103,7 @@ export default function TrackingPage() {
   }
 
   // 2️⃣ Chọn danh sách Tutee / Lớp
-  if (!selected) {
-    const list = mode === "tutee" ? tuteeList : classList;
+  if (!selectedId) {
 
     return (
       <div className="min-h-screen bg-gray-50">
@@ -82,7 +113,7 @@ export default function TrackingPage() {
               {mode === "tutee" ? "Danh sách Tutee" : "Danh sách Lớp"}
             </h1>
             <button
-              onClick={() => setMode(null)}
+              onClick={() => { setMode(null); setListData([]); }}
               className="text-sm text-blue-700 hover:underline"
             >
               ← Quay lại chọn loại
@@ -91,10 +122,17 @@ export default function TrackingPage() {
         </div>
 
         <div className="max-w-4xl mx-auto p-6 space-y-4">
-          {list.map((item) => (
+          {loading && <p className="text-center">Đang tải danh sách...</p>}
+          {error && <p className="text-center text-red-500">{error}</p>}
+
+          {!loading && !error && listData.length === 0 && (
+            <p className="text-center text-gray-500">Không tìm thấy dữ liệu.</p>
+          )}
+
+          {!loading && listData.map((item) => (
             <div
               key={item.id}
-              onClick={() => setSelected(item.id)}
+              onClick={() => { setLoading(true); setSelectedId(item.id); }}
               className="bg-white shadow hover:shadow-md border rounded-xl p-4 cursor-pointer transition"
             >
               <h2 className="text-lg font-semibold text-gray-800">
@@ -112,9 +150,22 @@ export default function TrackingPage() {
     );
   }
 
-  // 3️⃣ Hiển thị thông tin chi tiết
-  const detail =
-    mode === "tutee" ? tuteeDetails[selected] : classDetails[selected];
+  if (loading || !detailData) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white border-b shadow-sm">...</div>
+        <p className="text-center p-10">Đang tải chi tiết...</p>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white border-b shadow-sm">...</div>
+        <p className="text-center p-10 text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -122,11 +173,11 @@ export default function TrackingPage() {
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-[#002855]">
             {mode === "tutee"
-              ? `Thông tin Tutee: ${detail.name}`
-              : `Chi tiết lớp: ${detail.name}`}
+              ? `Thông tin Tutee: ${detailData.name}`
+              : `Chi tiết lớp: ${detailData.name}`}
           </h1>
           <button
-            onClick={() => setSelected(null)}
+            onClick={() => setSelectedId(null)}
             className="text-sm text-blue-700 hover:underline"
           >
             ← Quay lại danh sách
@@ -138,9 +189,9 @@ export default function TrackingPage() {
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
           {mode === "tutee" ? (
             <>
-              <p><b>Tên:</b> {detail.name}</p>
-              <p><b>Tiến độ:</b> {detail.progress}</p>
-              <p><b>Hoạt động gần nhất:</b> {detail.lastActive}</p>
+              <p><b>Tên:</b> {detailData.name}</p>
+              <p><b>Tiến độ:</b> {detailData.progress}</p>
+              <p><b>Hoạt động gần nhất:</b> {detailData.lastActive}</p>
             </>
           ) : (
             <table className="w-full text-left">
@@ -151,7 +202,7 @@ export default function TrackingPage() {
                 </tr>
               </thead>
               <tbody>
-                {detail.tutees.map((t, i) => (
+                {detailData.tutees.map((t, i) => (
                   <tr key={i} className="border-b text-gray-600">
                     <td className="py-3">{t.name}</td>
                     <td className="py-3">{t.progress}</td>

@@ -1,8 +1,9 @@
 // src/views/pages/shared/ReportPage.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
-import { FileText, CheckCircle, AlertCircle, Send } from "lucide-react";
+import { useAuth } from "../../../contexts/AuthContext";
+import { CheckCircle, AlertCircle, Send } from "lucide-react";
+import { submitReport } from "../../../api/api";
 
 export default function ReportPage() {
   const { user } = useAuth();
@@ -11,15 +12,35 @@ export default function ReportPage() {
   const [details, setDetails] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !details.trim()) return;
+    
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200)); // mock API
-    setLoading(false);
-    setDone(true);
-    setTimeout(() => navigate(-1), 2000);
+    setError(""); // Reset lỗi
+
+    try {
+      // Gọi API thật (giả lập)
+      await submitReport({
+        userId: user?.id,
+        title: title,
+        details: details
+      });
+
+      // Thành công
+      setDone(true);
+      setTimeout(() => navigate(-1), 2000);
+
+    } catch (err) {
+      // Thất bại
+      console.error("Lỗi gửi báo cáo:", err);
+      setError("Gửi báo cáo thất bại. Vui lòng thử lại sau.");
+    } finally {
+      // Luôn tắt loading
+      setLoading(false);
+    }
   };
 
   if (done) {
@@ -54,6 +75,11 @@ export default function ReportPage() {
       </div>
 
       <div className="max-w-3xl mx-auto px-6 py-10">
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+            {error}
+          </div>
+        )}
         <form
           onSubmit={handleSubmit}
           className="bg-white rounded-2xl shadow-lg p-8 space-y-6"
