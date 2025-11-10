@@ -81,9 +81,7 @@ export default function FeedbackPage() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">
-              Phản hồi / Đánh giá
-            </h1>
+            <h1 className="text-xl font-bold text-gray-800">Feedback</h1>
             <p className="text-sm text-gray-600">Xin chào, {user?.name}</p>
           </div>
           <button

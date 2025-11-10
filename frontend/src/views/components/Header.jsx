@@ -37,28 +37,26 @@ export default function Header() {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Left: Logo + Trường */}
         <div className="flex items-center gap-3">
-          <img
-            src={logoBK}
-            alt="BK Logo"
-            className="w-10 h-10 rounded-lg bg-white p-1"
-          />
-          <div>
-            <div className="text-xs font-light uppercase">
-              Đại học Quốc gia TP. HCM
+          <Link to="/" className="flex items-center gap-3">
+            <img
+              src={logoBK}
+              alt="BK Logo"
+              className="w-10 h-10 rounded-lg bg-white p-1"
+            />
+            <div>
+              <div className="text-xs font-light uppercase">
+                Đại học Quốc gia TP. HCM
+              </div>
+              <div className="text-sm font-semibold tracking-wide">
+                Trường Đại học Bách Khoa
+              </div>
             </div>
-            <div className="text-sm font-semibold tracking-wide">
-              Trường Đại học Bách Khoa
-            </div>
-          </div>
+          </Link>
         </div>
 
         {/* Middle: Dynamic Role Menu (Chỉ hiện khi đã đăng nhập) */}
         {isAuthenticated && (
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link to="/" className="hover:text-blue-300 transition">
-              Trang chủ
-            </Link>
-
             {role === "tutor" && (
               <>
                 <Link
@@ -71,13 +69,13 @@ export default function Header() {
                   to="/tutor/tracking"
                   className="hover:text-blue-300 transition"
                 >
-                  Theo dõi
+                  Theo dõi Tutee
                 </Link>
                 <Link
-                  to="/tutor/reports"
+                  to="/tutor/feedback"
                   className="hover:text-blue-300 transition"
                 >
-                  Báo cáo
+                  Feedback
                 </Link>
               </>
             )}
@@ -91,16 +89,16 @@ export default function Header() {
                   Khóa học
                 </Link>
                 <Link
-                  to="/tutee/feedback"
-                  className="hover:text-blue-300 transition"
-                >
-                  Feedback
-                </Link>
-                <Link
                   to="/tutee/library"
                   className="hover:text-blue-300 transition"
                 >
                   Tài liệu
+                </Link>
+                <Link
+                  to="/tutee/feedback"
+                  className="hover:text-blue-300 transition"
+                >
+                  Feedback
                 </Link>
               </>
             )}
@@ -113,7 +111,30 @@ export default function Header() {
                 >
                   Tổng quan
                 </Link>
-                {/* ... (các link admin khác) ... */}
+                <Link
+                  to="/admin/meeting-note"
+                  className="hover:text-blue-300 transition"
+                >
+                  Duyệt Meeting Notes
+                </Link>
+                <Link
+                  to="/admin/tracking"
+                  className="hover:text-blue-300 transition"
+                >
+                  Theo dõi học tập
+                </Link>
+                <Link
+                  to="/admin/evaluate-session"
+                  className="hover:text-blue-300 transition"
+                >
+                  Báo cáo học thuật tổng hợp
+                </Link>
+                <Link
+                  to="/admin/feedbacks"
+                  className="hover:text-blue-300 transition"
+                >
+                  Feedback hệ thống
+                </Link>
               </>
             )}
 

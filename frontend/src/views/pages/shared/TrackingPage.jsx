@@ -161,9 +161,8 @@ export default function TrackingPage() {
 
   if (loading || !detailData) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b shadow-sm">...</div>
-        <p className="text-center p-10">Đang tải chi tiết...</p>
+      <div className="min-h-screen p-8 bg-gray-50 flex justify-center items-center">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

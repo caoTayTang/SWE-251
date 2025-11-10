@@ -1,21 +1,64 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
-
-const mockStudents = [
-  { id: 1, name: "Trần Thị B", class: "K61-CNTT", progress: "70%" },
-  { id: 2, name: "Lê Văn C", class: "K61-CNTT", progress: "45%" },
-];
+import { getAdminAllTutees, getAdminAcademicClasses } from "../../../api/api";
 
 export default function AdminTracking() {
   const [mode, setMode] = useState("tutee"); // tutee | class
   const [query, setQuery] = useState("");
-  const [selectedClass, setSelectedClass] = useState("K61-CNTT");
 
-  const filtered = mockStudents.filter((s) => {
+  const [students, setStudents] = useState([]); // Thay cho mockStudents
+  const [classes, setClasses] = useState([]); // State cho list <select>
+  const [selectedClass, setSelectedClass] = useState(""); // State cho giá trị <select>
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        // 6. Dùng Promise.all để gọi song song
+        const [studentsRes, classesRes] = await Promise.all([
+          getAdminAllTutees(),
+          getAdminAcademicClasses(),
+        ]);
+
+        setStudents(studentsRes.data);
+        setClasses(classesRes.data);
+
+        // Tự động chọn class đầu tiên trong list (nếu có)
+        if (classesRes.data.length > 0) {
+          setSelectedClass(classesRes.data[0]);
+        }
+      } catch (err) {
+        console.error("Lỗi tải data tracking:", err);
+        setError("Không thể tải dữ liệu.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const filtered = students.filter((s) => {
     if (mode === "tutee")
       return s.name.toLowerCase().includes(query.toLowerCase());
     return s.class === selectedClass;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen p-8 bg-gray-50 flex justify-center items-center">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8 text-red-500">{error}</div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -54,8 +97,11 @@ export default function AdminTracking() {
               onChange={(e) => setSelectedClass(e.target.value)}
               className="px-3 py-2 border rounded"
             >
-              <option>K61-CNTT</option>
-              <option>K60-CNTT</option>
+              {classes.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
           )}
         </div>

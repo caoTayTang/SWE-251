@@ -36,6 +36,7 @@ export const mockUsers = [
     email: "levanc@hcmut.edu.vn",
     role: "tutee",
     avatarUrl: "https://ui-avatars.com/api/?name=Le+Van+C&background=random",
+    academicClass: "K23-CS",
   },
   {
     // 🔹 MỚI
@@ -45,6 +46,7 @@ export const mockUsers = [
     fullName: "Trần Thị B",
     role: "tutee",
     avatarUrl: "...",
+    academicClass: "K24-CE",
   },
   {
     // 🔹 MỚI
@@ -54,6 +56,7 @@ export const mockUsers = [
     fullName: "Phạm Văn D",
     role: "tutee",
     avatarUrl: "...",
+    academicClass: "K25-AS",
   },
   {
     id: 999,
@@ -267,25 +270,6 @@ export const mockLibrary = {
   ],
 };
 
-export const mockReports = [
-  {
-    id: 701,
-    reporterId: 101, // ID của tutee1
-    title: "Lỗi không mở được trang khóa học",
-    details: "Em bấm vào link /tutee/courses/1 thì bị lỗi 404.",
-    status: "new", // Trạng thái: new, in_progress, resolved
-    createdAt: "2025-11-08T10:30:00Z",
-  },
-  {
-    id: 702,
-    reporterId: 1, // ID của tutor1
-    title: "Không đính kèm file được",
-    details: "Nút 'Đính kèm' trong Library bị mờ, không bấm được.",
-    status: "new",
-    createdAt: "2025-11-09T14:00:00Z",
-  },
-];
-
 export const mockProgress = [
   {
     id: 901,
@@ -325,5 +309,196 @@ export const mockProgress = [
     progress: 60,
     lastActive: "2025-11-07T19:00:00Z",
     notes: "Có tiến bộ.",
+  },
+];
+
+// --- ADMIN DASHBOARD DATA ---
+
+export const mockAdminChartData = [
+  { name: "Thg 7", meetings: 12, feedbacks: 8, reports: 4 },
+  { name: "Thg 8", meetings: 18, feedbacks: 14, reports: 6 },
+  { name: "Thg 9", meetings: 10, feedbacks: 6, reports: 3 },
+  { name: "Thg 10", meetings: 22, feedbacks: 18, reports: 9 },
+  // 🔹 Thêm data "realistic" cho tháng 11
+  { name: "Thg 11", meetings: 25, feedbacks: 20, reports: 10 },
+];
+
+export const mockAdminStats = [
+  {
+    id: 1,
+    title: "Người dùng", // Dùng 'title' làm key
+    value: 345,
+    // (Icon <Users /> SẼ NẰM TRONG COMPONENT)
+  },
+  {
+    id: 2,
+    title: "Meeting chờ",
+    value: 12,
+  },
+  {
+    id: 3,
+    title: "Feedback mới",
+    // 🔹 "Khớp" data với các "bảng" khác
+    // 9 (hardcoded) -> 2 (đếm từ mockReports)
+    value: 2, // (Tí nữa api.js sẽ "tính")
+  },
+  {
+    id: 4,
+    title: "Báo cáo",
+    // 🔹 "Khớp" data
+    value: 2, // (đếm từ mockReports)
+  },
+];
+
+// --- ADMIN EVALUATIONS ---
+// export const mockEvaluations = [
+//   {
+//     id: 501, // ID của bản đánh giá
+//     userId: 1, // <-- Foreign Key (tutor1)
+//     rating: 4.5,
+//     notes: "Tutor rất tích cực.",
+//   },
+//   {
+//     id: 502,
+//     userId: 101, // <-- Foreign Key (tutee1)
+//     rating: 4.0,
+//     notes: "Tutee phản hồi nhanh.",
+//   },
+//   {
+//     id: 503,
+//     userId: 102, // <-- Foreign Key (tutee2)
+//     rating: 3.5,
+//     notes: "",
+//   },
+// ];
+
+// --- ADMIN FEEDBACKS ---
+// (Data này được gửi từ FeedbackPage.js)
+export const mockFeedbacks = [
+  {
+    id: 801,
+    userId: 102, // <-- Normalized (Tutee: Trần Thị B)
+    topic: "Báo lỗi hệ thống",
+    body: "Không upload được file, bấm nút 'Upload' không chạy.",
+    status: "new", // 'new', 'inprogress', 'resolved'
+    createdAt: "2025-10-27T09:00:00Z",
+    replies: [], // Chưa ai trả lời
+  },
+  {
+    id: 802,
+    userId: 1, // <-- Normalized (Tutor: Nguyễn Văn A)
+    topic: "Yêu cầu tính năng mới",
+    body: "Thêm filter theo level cho trang 'Theo dõi lớp'.",
+    status: "inprogress",
+    createdAt: "2025-10-26T14:30:00Z",
+    replies: [
+      {
+        id: 9001,
+        replierId: 999, // Admin (id: 999) đã trả lời
+        body: "Cảm ơn góp ý. Team dev sẽ xem xét trong tuần này.",
+        createdAt: "2025-10-26T15:00:00Z",
+      },
+    ],
+  },
+  {
+    id: 803,
+    userId: 101, // tutee1
+    topic: "Góp ý về nội dung khóa học",
+    body: "Nội dung khóa Giải tích 1 chương 2 hơi khó hiểu.",
+    status: "resolved",
+    createdAt: "2025-10-25T11:00:00Z",
+    replies: [
+      {
+        id: 9002,
+        replierId: 999, // Admin
+        body: "Đã báo cho Tutor Nguyễn Văn A. Cảm ơn em.",
+        createdAt: "2025-10-25T12:00:00Z",
+      },
+    ],
+  },
+];
+
+// !NOTE This is different from mockReport (report is like: the system is lagging, not academic report)
+export const mockAcademicReports = [
+  {
+    id: 601,
+    reporterId: 1, // <-- Normalized (Tutor: Nguyễn Văn A)
+    courseId: 1, // <-- Lớp: Giải tích 1
+    type: "Tiến độ học tập",
+    date: "2025-10-25",
+    status: "new", // 'new', 'approved', 'rejected'
+    url: "#", // URL file (có thể trỏ tới mock file)
+  },
+  {
+    id: 602,
+    reporterId: 101, // <-- Normalized (Tutee: Lê Văn C)
+    courseId: 3, // <-- Lớp: Vật lý 2
+    type: "Báo cáo điểm danh",
+    date: "2025-10-20",
+    status: "approved", // (Đã duyệt 1 cái)
+    url: "#",
+  },
+  {
+    id: 603,
+    reporterId: 1, // <-- Tutor: Nguyễn Văn A
+    courseId: 2, // <-- Lớp: Lập trình C++
+    type: "Tiến độ học tập",
+    date: "2025-10-27",
+    status: "new",
+    url: "#",
+  },
+];
+
+// --- SESSION EVALUATIONS (UC-12) ---
+// (Do Tutee gửi sau mỗi buổi học)
+export const mockSessionEvaluations = [
+  {
+    id: 1,
+    enrollmentId: 1, // <-- Nối với (Tutee 101, Khóa 1)
+    rating: 5, // Tutee 101 cho 5 sao
+    comment: "Buổi học rất hữu ích!",
+  },
+  {
+    id: 2,
+    enrollmentId: 3, // <-- Nối với (Tutee 102, Khóa 1)
+    rating: 4,
+    comment: "Thầy giảng hơi nhanh.",
+  },
+  {
+    id: 3,
+    enrollmentId: 4, // <-- Nối với (Tutee 102, Khóa 2)
+    rating: 5,
+    comment: "OK",
+  },
+  {
+    id: 4,
+    enrollmentId: 2, // <-- Nối với (Tutee 101, Khóa 3)
+    rating: 3,
+    comment: "Buổi học này hơi khó.",
+  },
+];
+
+// --- BẢNG "BIÊN BẢN CUỘC HỌP" (MEETING NOTES) [UC-13] ---
+// (Do Tutor tạo, Admin duyệt)
+export const mockMeetingNotes = [
+  {
+    id: 601,
+    reporterId: 1, // <-- "Foreign Key" trỏ tới Tutor 1 (Nguyễn Văn A)
+    courseId: 1, // <-- "Foreign Key" trỏ tới Khóa 1 (Giải tích 1)
+    type: "Tiến độ học tập",
+    details: "Tuần 4: Lớp hoàn thành chương 1. Tutee (101, 102) nắm vững.", // (Nội dung biên bản)
+    date: "2025-10-25",
+    status: "new", // ❗ Trạng thái 'new' (chờ Admin duyệt)
+    url: "https://docs.google.com/...", // (Link GDocs/PDF)
+  },
+  {
+    id: 602,
+    reporterId: 1, // <-- Tutor 1
+    courseId: 2, // <-- Khóa 2 (Lập trình C++)
+    type: "Báo cáo điểm danh",
+    details: "Tuần 4: Tutee (102) tham gia đầy đủ.",
+    date: "2025-10-20",
+    status: "approved", // ❗ Trạng thái 'approved' (Admin đã duyệt)
+    url: "#",
   },
 ];

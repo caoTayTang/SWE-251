@@ -1,13 +1,21 @@
 {
-  "extends": ["eslint:recommended", "plugin:react/recommended", "prettier"],
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": ["prettier"],
   "parserOptions": {
-    "ecmaVersion": 2020,
+    "ecmaVersion": 12,
     "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
-    }
+    "ecmaFeatures": { "jsx": true }
   },
   "rules": {
-    "react/react-in-jsx-scope": "off"
+    "react/prop-types": "off",
+    "no-unused-vars": "off",
+    "no-useless-catch": "off",
+    "no-console": "off"
+  },
+  "settings": {
+    "react": { "version": "detect" }
   }
 }

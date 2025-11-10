@@ -42,7 +42,11 @@ export default function CourseCard({ course, onEdit, onDelete, isTutor }) {
 
         {/* Meeting Note chỉ hiện cho tutor */}
         {isTutor && (
-          <MeetingNoteButton courseId={course.id} className="flex-1" />
+          <MeetingNoteButton
+            courseId={course.id}
+            courseName={course.title}
+            className="flex-1"
+          />
         )}
       </div>
     </div>

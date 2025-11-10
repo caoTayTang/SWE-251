@@ -1,23 +1,26 @@
+// src/views/components/Course/MeetingNoteButton.js
 import React from "react";
-import { FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { FilePlus } from "lucide-react"; // (Hoặc icon bạn thích)
 
-export default function MeetingNoteButton() {
-  const handleCreateMeetingNote = () => {
-    alert(
-      "Tạo meeting note cho khóa học này (thực tế sẽ link tới Google Docs)"
-    );
+export default function MeetingNoteButton({ courseId, courseName, className }) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    // 2. Nó sẽ tạo 1 URL "động"
+    // Ví dụ: /tutor/create-note?courseId=1&courseName=Giải tích 1
+    const path = `/tutor/create-note?courseId=${courseId}&courseName=${encodeURIComponent(courseName)}`;
+
+    // 3. Và "đẩy" user tới đó
+    navigate(path);
   };
 
   return (
     <button
-      onClick={handleCreateMeetingNote}
-      className="px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium
-                 bg-white text-gray-700 border border-gray-300
-                 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-500
-                 transition-all"
+      onClick={handleClick}
+      className={`${className} bg-yellow-50 hover:bg-yellow-100 text-yellow-800 px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-medium transition-colors`}
     >
-      <FileText className="w-5 h-5" />
-      Tạo meeting note
+      <FilePlus className="w-4 h-4" /> Tạo Note
     </button>
   );
 }

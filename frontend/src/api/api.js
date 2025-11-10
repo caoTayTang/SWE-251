@@ -8,8 +8,11 @@ import {
   mockNotifications,
   mockFeedbackTopics,
   mockLibrary,
-  mockReports,
   mockProgress,
+  mockAdminChartData,
+  mockFeedbacks,
+  mockSessionEvaluations,
+  mockMeetingNotes,
 } from "./mockData.js";
 
 // 2. Helper giả lập độ trễ mạng (Rất quan trọng)
@@ -311,28 +314,6 @@ export const attachDocToClass = (docId, className, tutorId) => {
 };
 
 /**
- * [POST] Gửi báo cáo sự cố/tiến độ
- * Endpoint: POST /api/reports
- * @param {object} reportData - { userId, title, details }
- */
-export const submitReport = (reportData) => {
-  console.log("FAKE API: Nhận báo cáo:", reportData);
-
-  // Giả lập backend tạo 1 report mới
-  const newReport = {
-    id: Date.now(),
-    reporterId: reportData.userId,
-    title: reportData.title,
-    details: reportData.details,
-    status: "new",
-    createdAt: new Date().toISOString(),
-  };
-
-  // Backend sẽ lưu vào DB và trả về data đã tạo
-  return simulateDelay(newReport);
-};
-
-/**
  * [GET] Lấy danh sách LỚP của Tutor
  * Endpoint: GET /api/tutor/tracking/classes
  */
@@ -438,4 +419,323 @@ export const getTrackingTuteeDetails = (tuteeId) => {
   };
 
   return simulateDelay(tuteeDetails);
+};
+
+// --- ADMIN API ---
+
+/**
+ * [GET] Lấy data biểu đồ
+ * Endpoint: GET /api/admin/chart
+ */
+export const getAdminDashboardChart = () => {
+  return simulateDelay(mockAdminChartData);
+};
+
+/**
+ * [GET] Lấy các chỉ số thống kê (ĐÃ FIX - Bỏ Meeting chờ)
+ * Endpoint: GET /api/admin/stats
+ */
+export const getAdminDashboardStats = () => {
+  // --- Giả lập Backend TÍNH TOÁN ---
+
+  // 1. Đếm Users (trừ admin)
+  const userCount = mockUsers.filter((u) => u.role !== "admin").length;
+
+  // 2. Đếm Feedback mới (UC-11)
+  const feedbackCount = mockFeedbacks.filter((f) => f.status === "new").length;
+
+  // 3. Đếm "Báo cáo" (Biên bản) mới (UC-13)
+  const reportCount = mockMeetingNotes.filter((r) => r.status === "new").length;
+
+  // (Đã bỏ meetingCount)
+
+  // --- Backend trả về JSON đã TÍNH TOÁN ---
+  const calculatedStats = [
+    { id: 1, title: "Người dùng", value: userCount },
+    { id: 2, title: "Feedback mới", value: feedbackCount },
+    { id: 3, title: "Meeting Note mới", value: reportCount },
+  ];
+
+  return simulateDelay(calculatedStats);
+};
+
+// --- ADMIN FEEDBACK API ---
+
+/**
+ * [GET] Lấy tất cả feedback (Join với Users)
+ * Endpoint: GET /api/admin/feedbacks
+ */
+export const getAdminFeedbacks = () => {
+  console.log("FAKE API: Đang lấy feedbacks + JOIN với Users...");
+  // Giả lập Backend "JOIN" 2 bảng
+  const feedbacksWithUserData = mockFeedbacks.map((fb) => {
+    const user = mockUsers.find((u) => u.id === fb.userId);
+    return {
+      ...fb, // Gồm: id, userId, topic, body, status, createdAt, replies
+      // Data "join" thêm:
+      user: user ? `${user.fullName} (${user.role})` : "Người dùng đã xóa",
+    };
+  });
+
+  // Sắp xếp cái mới nhất lên đầu
+  return simulateDelay(
+    feedbacksWithUserData.sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    )
+  );
+};
+
+/**
+ * [PATCH] Cập nhật status của feedback
+ * Endpoint: PATCH /api/admin/feedbacks/:id
+ */
+export const updateFeedbackStatus = (id, status) => {
+  console.log(`FAKE API: Cập nhật Feedback ${id} sang status ${status}`);
+  // Giả lập backend trả về data đã cập nhật (đã "join")
+  const original = mockFeedbacks.find((fb) => fb.id === id);
+  const user = mockUsers.find((u) => u.id === original.userId);
+
+  const updatedResponse = {
+    ...original,
+    status: status, // Cập nhật status
+    user: user ? `${user.fullName} (${user.role})` : "N/A",
+  };
+  return simulateDelay(updatedResponse);
+};
+
+/**
+ * [POST] Gửi trả lời cho feedback
+ * Endpoint: POST /api/admin/feedbacks/:id/reply
+ */
+export const replyToFeedback = (id, replyBody, adminId) => {
+  console.log(
+    `FAKE API: Admin ${adminId} trả lời Feedback ${id}: ${replyBody}`
+  );
+
+  const original = mockFeedbacks.find((fb) => fb.id === id);
+  const user = mockUsers.find((u) => u.id === original.userId);
+
+  // Logic backend: Thêm reply và tự động chuyển status
+  const newReply = {
+    id: Date.now(),
+    replierId: adminId,
+    body: replyBody,
+    createdAt: new Date().toISOString(),
+  };
+
+  const updatedResponse = {
+    ...original,
+    status: "resolved", // Backend tự động chuyển status
+    replies: [...original.replies, newReply],
+    user: user ? `${user.fullName} (${user.role})` : "N/A",
+  };
+
+  return simulateDelay(updatedResponse);
+};
+
+// --- ADMIN ACADEMIC REPORTS API ---
+/**
+ * [GET] Lấy data thống kê học thuật của TẤT CẢ Tutee
+ * (Mô phỏng "JOIN" 4 bảng)
+ * Endpoint: GET /api/admin/reports/academic-overview
+ */
+export const getAdminAcademicOverview = () => {
+  console.log("FAKE API: Admin generating Academic Overview...");
+
+  const overview = mockUsers
+    .filter((u) => u.role === "tutee") // 1. Chỉ lấy Tutee
+    .map((tutee) => {
+      // 2. Tìm các lớp Tutee này học
+      const enrollments = mockEnrollments.filter((e) => e.tuteeId === tutee.id);
+
+      // 3. Tìm tiến độ
+      const progresses = mockProgress.filter((p) =>
+        enrollments.some((e) => e.id === p.enrollmentId)
+      );
+
+      // 4. Tìm đánh giá
+      const evaluations = mockSessionEvaluations.filter((ev) =>
+        enrollments.some((e) => e.id === ev.enrollmentId)
+      );
+
+      // 5. Tính toán
+      let avgProgress = 0;
+      if (progresses.length > 0) {
+        avgProgress =
+          progresses.reduce((sum, p) => sum + p.progress, 0) /
+          progresses.length;
+      }
+
+      let avgRating = 0;
+      if (evaluations.length > 0) {
+        avgRating =
+          evaluations.reduce((sum, ev) => sum + ev.rating, 0) /
+          evaluations.length;
+      }
+
+      return {
+        id: tutee.id,
+        name: tutee.fullName,
+        class: tutee.academicClass || "N/A",
+        coursesTaken: enrollments.length,
+        avgProgress: Math.round(avgProgress),
+        avgRating: avgRating.toFixed(1), // Làm tròn 1 chữ số
+      };
+    });
+
+  return simulateDelay(overview);
+};
+
+// -- MEETING NOTE --
+// --- API CHO BIÊN BẢN CUỘC HỌP (MEETING NOTE) [UC-13] ---
+
+/**
+ * [GET] Admin lấy danh sách biên bản (Đã "Join")
+ * (Dùng cho AdminReports.js - Mockup 47)
+ * Endpoint: GET /api/admin/meeting-notes
+ */
+export const getAdminMeetingNotes = () => {
+  console.log("FAKE API: Admin lấy Meeting Notes (JOIN Users, Courses)...");
+
+  // Giả lập Backend "JOIN" 3 bảng (Notes, Users, Courses)
+  const notesWithData = mockMeetingNotes.map((note) => {
+    const user = mockUsers.find((u) => u.id === note.reporterId);
+    const course = mockCourses.find((c) => c.id === note.courseId);
+
+    // "Realistic" data trả về
+    const from = user ? `${user.fullName} (${user.role})` : "Không rõ";
+    const courseName = course ? course.title : "N/A";
+
+    return {
+      ...note, // Gồm: id, type, date, status, url, details...
+      from: from, // Data "join" thêm
+      courseName: courseName, // Data "join" thêm
+    };
+  });
+
+  // Sắp xếp cái mới nhất lên đầu
+  return simulateDelay(
+    notesWithData.sort((a, b) => new Date(b.date) - new Date(a.date))
+  );
+};
+
+/**
+ * [PATCH] Admin cập nhật status (Duyệt/Từ chối)
+ * (Dùng cho AdminReports.js - Mockup 47)
+ * Endpoint: PATCH /api/admin/meeting-notes/:id
+ */
+export const updateMeetingNoteStatus = (id, status) => {
+  console.log(
+    `FAKE API: Admin cập nhật Meeting Note ${id} sang status ${status}`
+  );
+
+  // Giả lập backend tìm data gốc
+  const original = mockMeetingNotes.find((r) => r.id === id);
+  if (!original) return Promise.reject(new Error("Không tìm thấy biên bản"));
+
+  // Giả lập backend trả về data đã cập nhật (đã "join")
+  const user = mockUsers.find((u) => u.id === original.reporterId);
+  const from = user ? `${user.fullName} (${user.role})` : "Không rõ";
+  const course = mockCourses.find((c) => c.id === original.courseId);
+  const courseName = course ? course.title : "N/A";
+
+  const updatedResponse = {
+    ...original,
+    status: status, // Cập nhật status
+    from: from,
+    courseName: courseName,
+  };
+
+  return simulateDelay(updatedResponse);
+};
+
+/**
+ * [POST] Tutor tạo biên bản mới
+ * (Dùng cho CreateMeetingNotePage.js - Mockup 38)
+ * Endpoint: POST /api/meeting-notes
+ */
+export const createMeetingNote = (noteData) => {
+  // noteData = { tutorId, courseId, type, date, url, details }
+  console.log("FAKE API: Tutor nộp Meeting Note:", noteData);
+
+  const newNote = {
+    id: Date.now(),
+    reporterId: noteData.tutorId,
+    courseId: noteData.courseId,
+    type: noteData.type,
+    details: noteData.details,
+    date: new Date().toISOString().split("T")[0],
+    status: "new", // ❗ Backend LUÔN LUÔN set 'new' (chờ duyệt)
+    url: noteData.url || "#",
+  };
+
+  // (Backend sẽ lưu 'newNote' này vào DB)
+
+  // Giả lập backend trả về data (đã "join")
+  const user = mockUsers.find((u) => u.id === newNote.reporterId);
+  const from = user ? `${user.fullName} (${user.role})` : "Không rõ";
+  const course = mockCourses.find((c) => c.id === newNote.courseId);
+  const courseName = course ? course.title : "N/A";
+
+  return simulateDelay({
+    ...newNote,
+    from: from,
+    courseName: courseName,
+  });
+};
+
+// --- ADMIN TRACKING API ---
+
+/**
+ * [GET] Lấy danh sách lớp HỌC CHÍNH (K60, K61)
+ * Endpoint: GET /api/admin/tracking/classes
+ */
+export const getAdminAcademicClasses = () => {
+  // Lọc ra các lớp duy nhất từ mockUsers
+  const classes = mockUsers
+    .filter((u) => u.role === "tutee" && u.academicClass)
+    .map((u) => u.academicClass);
+
+  const uniqueClasses = [...new Set(classes)]; // ['K61-CNTT', 'K60-CNTT']
+
+  return simulateDelay(uniqueClasses);
+};
+
+/**
+ * [GET] Lấy danh sách TẤT CẢ tutees (để admin theo dõi)
+ * Endpoint: GET /api/admin/tracking/tutees
+ */
+export const getAdminAllTutees = () => {
+  console.log(`FAKE API: Admin getting all tutees...`);
+
+  const tutees = mockUsers
+    .filter((u) => u.role === "tutee") // 1. Lọc Tutee
+    .map((tutee) => {
+      // 2. "Join" để lấy tiến độ
+
+      // Tìm tất cả enrollments (đăng ký học) của tutee này
+      const enrollments = mockEnrollments.filter((e) => e.tuteeId === tutee.id);
+
+      // Tìm tất cả progress (tiến độ) của các enrollment đó
+      const progresses = mockProgress.filter((p) =>
+        enrollments.some((e) => e.id === p.enrollmentId)
+      );
+
+      // Tính tiến độ trung bình (ví dụ)
+      let avgProgress = 0;
+      if (progresses.length > 0) {
+        avgProgress =
+          progresses.reduce((sum, p) => sum + p.progress, 0) /
+          progresses.length;
+      }
+
+      return {
+        id: tutee.id,
+        name: tutee.fullName,
+        class: tutee.academicClass || "N/A", // Lấy từ mockUsers
+        progress: `${Math.round(avgProgress)}%`, // Format lại
+      };
+    });
+
+  return simulateDelay(tutees);
 };

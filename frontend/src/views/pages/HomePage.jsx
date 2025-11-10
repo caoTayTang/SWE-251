@@ -1,8 +1,25 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function HomePage() {
+  const { user, isAuthenticated } = useAuth();
+
+  const getDashboardLink = () => {
+    if (!user) return "/login"; // Fallback
+    switch (user.role) {
+      case "tutor":
+        return "/tutor/courses";
+      case "tutee":
+        return "/tutee/courses";
+      case "admin":
+        return "/admin/dashboard";
+      default:
+        return "/";
+    }
+  };
+
   return (
     <div className="min-h-screen relative flex flex-col">
       {/* Background */}
@@ -14,7 +31,7 @@ export default function HomePage() {
       <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px] -z-10" />
 
       {/* Header */}
-      <Header role="guest" />
+      <Header />
 
       {/* Main */}
       <main className="flex-1 flex flex-col items-center justify-center text-center px-6">
@@ -27,12 +44,24 @@ export default function HomePage() {
         </p>
 
         <div className="mt-8 flex gap-4">
-          <Link
-            to="/login"
-            className="px-6 py-3 bg-[#002855] text-white rounded-xl shadow hover:bg-blue-900 transition-all"
-          >
-            Đăng nhập / Bắt đầu
-          </Link>
+          {isAuthenticated ? (
+            // (A) ĐÃ ĐĂNG NHẬP
+            <Link
+              to={getDashboardLink()} // Link tới trang của role
+              className="px-6 py-3 bg-[#002855] text-white rounded-xl shadow hover:bg-blue-900 transition-all"
+            >
+              Vào Bảng điều khiển
+            </Link>
+          ) : (
+            // (B) CHƯA ĐĂNG NHẬP (Guest)
+            <Link
+              to="/login"
+              className="px-6 py-3 bg-[#002855] text-white rounded-xl shadow hover:bg-blue-900 transition-all"
+            >
+              Đăng nhập / Bắt đầu
+            </Link>
+          )}
+
           <a
             href="https://hcmut.edu.vn"
             target="_blank"
