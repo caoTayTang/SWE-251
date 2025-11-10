@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 // Import hàm login từ API của chúng ta
 import { login as apiLogin } from "../api/api";
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const useUser = () => {
   const { user } = useAuth();

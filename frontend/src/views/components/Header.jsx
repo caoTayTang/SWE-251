@@ -127,7 +127,7 @@ export default function Header() {
                   to="/admin/evaluate-session"
                   className="hover:text-blue-300 transition"
                 >
-                  Báo cáo học thuật tổng hợp
+                  Báo cáo học thuật
                 </Link>
                 <Link
                   to="/admin/feedbacks"

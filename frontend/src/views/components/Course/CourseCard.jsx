@@ -26,27 +26,30 @@ export default function CourseCard({ course, onEdit, onDelete, isTutor }) {
 
       {/* Action buttons */}
       <div className="flex gap-2 pt-5 mt-5 border-t border-gray-100">
-        <button
-          onClick={() => onEdit(course)}
-          className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-medium transition-colors"
-        >
-          Sửa
-        </button>
+        {isTutor ? (
+          <>
+            <button
+              onClick={() => onEdit(course)}
+              className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-medium transition-colors"
+            >
+              Sửa
+            </button>
 
-        <button
-          onClick={() => onDelete(course.id)}
-          className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-medium transition-colors"
-        >
-          Xóa
-        </button>
+            <button
+              onClick={() => onDelete(course.id)}
+              className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded-lg flex items-center justify-center gap-1 text-sm font-medium transition-colors"
+            >
+              Xóa
+            </button>
 
-        {/* Meeting Note chỉ hiện cho tutor */}
-        {isTutor && (
-          <MeetingNoteButton
-            courseId={course.id}
-            courseName={course.title}
-            className="flex-1"
-          />
+            <MeetingNoteButton
+              courseId={course.id}
+              courseName={course.title}
+              className="flex-1"
+            />
+          </>
+        ) : (
+          <>{/* TODO!: Enroll course */}</>
         )}
       </div>
     </div>

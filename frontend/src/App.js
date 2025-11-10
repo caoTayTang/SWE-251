@@ -22,7 +22,10 @@ import AdminAcademicReportPage from "./views/pages/admin/AdminAcademicReportPage
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        {" "}
         <Routes>
           {/* 🌐 Public routes */}
           <Route path="/login" element={<LoginPage />} />
