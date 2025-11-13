@@ -28,7 +28,6 @@ Contains the core backend logic.
   - `course.py` – Course table definition.
   - `notification.py` – Notification table definition.
 - `database/` – Database connection and session management:
-  - `session.py` – Creates SQLAlchemy session objects for querying.
   - `__init__.py` – Initializes the database package.
 - `core/` – Core configuration:
   - `config.py` – App settings (e.g., database URL).

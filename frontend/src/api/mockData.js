@@ -120,7 +120,7 @@ export const mockCourses = [
     status: "active",
     enrolledCount: 2, // ❗ KHỚP: tutee1 (101) và tutee3 (103) đã join    maxStudents: 30,
     schedule: [
-      { day: "Thứ 2", start: "14:00", end: "16:00" },
+      { day: "Thứ 2", start: "14:00", end: "16:00" ,},
       { day: "Thứ 5", start: "14:00", end: "16:00" }
     ],
     location: "C2-101",
