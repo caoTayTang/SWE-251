@@ -1,5 +1,5 @@
 from .user import MututorUser, UserRole, Base
-from .course import Course, CourseStatus, CourseFormat, Subject, Level, CourseSession
+from .course import Course, CourseStatus, CourseFormat, Subject, Level, CourseSession, CourseResource
 from .enrollment import Enrollment, EnrollmentStatus
 from .feedback import Feedback, SessionEvaluation
 from .notification import Notification, NotificationType
@@ -21,6 +21,7 @@ __all__ = [
     "Subject",
     "Level",
     "CourseSession",
+    "CourseResource",
     "Enrollment",
     "EnrollmentStatus",
     "Feedback",

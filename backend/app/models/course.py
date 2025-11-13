@@ -1,9 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, ForeignKey, Text, Time, Date
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, declarative_base, Session
 from datetime import datetime, time, date, timedelta
 import enum
-from user import Base, MututorUser
-
+from .user import MututorUser, Base
 
 # --- Enums for Course Status and Format (Kept from original) ---
 
@@ -75,6 +74,8 @@ class Course(Base):
     
     meeting_records = relationship("MeetingRecord", back_populates="course")
 
+    resource = relationship("CourseResource", back_populates="course", cascade="all, delete-orphan")
+
     def __repr__(self):
         return f"<Course(id={self.id}, title={self.title}, status={self.status})>"
 
@@ -109,15 +110,26 @@ class CourseSession(Base):
         # --- MODIFIED: Updated repr ---
         return f"<CourseSession(course_id={self.course_id}, session_id={self.id}, date={self.session_date})>"
 
+class CourseResource(Base):
+    __tablename__ = "course_resource"
 
+    id = Column(Integer, primary_key=True, index=True) 
+    
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
+    resource_id = Column(Integer, nullable=False, index=True)
 
+    course = relationship("Course", back_populates="resource")
+    
+    def __repr__(self):
+        return f"<CourseResource(course_id={self.course_id}, resource_id={self.resource_id})>"
+    
+    
 if __name__ == "__main__":
     from sqlalchemy.orm import sessionmaker
     from sqlalchemy import create_engine
     
 
     from enrollment import Enrollment, EnrollmentStatus
-    from notification import Notification, NotificationType # From previous step
     from record import MeetingRecord, MeetingRecordStatus
 
     from feedback import Feedback, SessionEvaluation
@@ -130,25 +142,29 @@ if __name__ == "__main__":
     print("Connecting to database to seed data...")
     print("Dropping old tables...")
     Base.metadata.drop_all(bind=engine, tables=[
-        Subject.__table__,
+        MututorUser.__table__,
         Course.__table__,
         CourseSession.__table__,
+        Subject.__table__,
         Enrollment.__table__,
-        Feedback.__table__,           
-        SessionEvaluation.__table__ ,
-        MeetingRecord.__table__
+        Feedback.__table__,
+        SessionEvaluation.__table__,
+        MeetingRecord.__table__ 
     ])
 
+    # Recreate them
     print("Recreating tables...")
     Base.metadata.create_all(bind=engine, tables=[
-        Subject.__table__,
+        MututorUser.__table__,
         Course.__table__,
         CourseSession.__table__,
+        Subject.__table__,
         Enrollment.__table__,
-        Feedback.__table__,          
+        Feedback.__table__,
         SessionEvaluation.__table__,
-        MeetingRecord.__table__
+        MeetingRecord.__table__ 
     ])
+
     
     db = SessionLocal()
     

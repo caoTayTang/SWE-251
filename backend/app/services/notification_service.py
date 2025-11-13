@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from notification import Notification, NotificationType
+from ..models.notification import Notification, NotificationType
 
 
 class NotificationService:

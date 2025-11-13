@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, date, time
-from ..models.course import Course, CourseStatus, Level, CourseSession, Subject, CourseFormat
+from ..models.course import Course, CourseStatus, Level, CourseSession, Subject, CourseFormat, CourseResource
 
 
 class CourseService:

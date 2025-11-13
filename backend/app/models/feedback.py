@@ -3,15 +3,12 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, E
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
-# from ..database import Base # OLD - Inconsistent
-from user import Base # FIXED: Import Base from the same place as course.py
+from .user import Base # FIXED: Import Base from the same place as course.py
 
 class Feedback(Base):
     __tablename__ = "feedbacks"
 
     id = Column(Integer, primary_key=True, index=True)
-    
-
     #user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     user_id = Column(String, nullable=False, index=True)
     topic = Column(String, nullable=False)

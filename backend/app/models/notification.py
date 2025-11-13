@@ -3,8 +3,8 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, E
 from sqlalchemy.orm import relationship
 from datetime import datetime, time, date, timedelta
 import enum
-# from ..database import Base # OLD - Inconsistent with other models
-from user import Base # FIXED: Import Base from the same place as course.py
+
+from .user import Base # FIXED: Import Base from the same place as course.py
 
 class NotificationType(str, enum.Enum):
     SESSION_REMINDER = "session_reminder"
