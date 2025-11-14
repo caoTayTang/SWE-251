@@ -1,4 +1,4 @@
-from .user import MututorUser, UserRole, Base
+from .user import MututorUser, UserRole
 from .course import Course, CourseStatus, CourseFormat, Subject, Level, CourseSession, CourseResource
 from .enrollment import Enrollment, EnrollmentStatus
 from .feedback import Feedback, SessionEvaluation
@@ -6,11 +6,10 @@ from .notification import Notification, NotificationType
 from .record import MeetingRecord, MeetingRecordStatus
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-
+from .base import Base
 DATABASE_URL = "sqlite:///muchat.db"
 engine = create_engine(DATABASE_URL, echo=False)
 mututor_session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
 
 __all__ = [
     "MututorUser",
