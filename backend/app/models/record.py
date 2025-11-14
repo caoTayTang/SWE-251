@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, Text
 from sqlalchemy.orm import relationship, sessionmaker
 from datetime import datetime
 import enum
-from .user import Base
+from .base import Base
 
 
 class MeetingRecordStatus(str, enum.Enum):

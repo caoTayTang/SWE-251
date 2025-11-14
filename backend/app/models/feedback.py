@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, E
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
-from .user import Base # FIXED: Import Base from the same place as course.py
+from .base import Base
 
 class Feedback(Base):
     __tablename__ = "feedbacks"

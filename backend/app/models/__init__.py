@@ -5,12 +5,12 @@ from .feedback import Feedback, SessionEvaluation
 from .notification import Notification, NotificationType
 from .record import MeetingRecord, MeetingRecordStatus
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 DATABASE_URL = "sqlite:///muchat.db"
 engine = create_engine(DATABASE_URL, echo=False)
 mututor_session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
+Base = declarative_base()
 
 __all__ = [
     "MututorUser",
@@ -30,5 +30,6 @@ __all__ = [
     "NotificationType",
     "MeetingRecord",
     "MeetingRecordStatus",
-    "mututor_session"
+    "mututor_session",
+    "Base"
 ]

@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
 # from ..database import Base # OLD
-from .user import Base # FIXED: Import Base from the same place as course.py
+from .base import Base
 
 class EnrollmentStatus(str, enum.Enum):
     ENROLLED = "enrolled"
