@@ -1,7 +1,7 @@
 # <filename>enrollment.py</filename>
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 import enum
 # from ..database import Base # OLD
 from .base import Base
@@ -23,12 +23,12 @@ class Enrollment(Base):
     status = Column(Enum(EnrollmentStatus), default=EnrollmentStatus.ENROLLED)
     
     # This column will be populated by 'enrolledAt' from mock data
-    enrollment_date = Column(DateTime, default=datetime.utcnow)
+    enrollment_date = Column(DateTime, default=datetime.now(timezone.utc))
     
     drop_reason = Column(Text, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
     # Relationships
     # This 'User' should be the class name in user.py (e.g., MututorUser)

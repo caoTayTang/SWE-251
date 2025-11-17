@@ -4,7 +4,7 @@ from fastapi import FastAPI
 import uvicorn
 import os
 from app import create_app
-
+from app.models import clear_all_sessions
 
 origins = [
     "http://localhost:3000",  # React dev server
@@ -23,6 +23,7 @@ app.add_middleware(
 if __name__ == "__main__":
     #http://127.0.0.1:8000/docs   
     #reload_flag = os.getenv("DEBUG", "false").lower() == "true"
+    clear_all_sessions()
 
     uvicorn.run(
         "app.main:app",

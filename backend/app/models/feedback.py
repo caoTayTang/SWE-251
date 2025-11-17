@@ -1,7 +1,7 @@
 # <filename>feedback.py</filename>
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Enum, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 import enum
 from .base import Base
 
@@ -14,8 +14,8 @@ class Feedback(Base):
     topic = Column(String, nullable=False)
     content = Column(Text, nullable=False)
     is_anonymous = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
     # Relationships
 
@@ -36,8 +36,8 @@ class SessionEvaluation(Base):
     rating = Column(Integer, nullable=False)  # 1-5 scale
     comment = Column(Text, nullable=True)
     is_anonymous = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
     # Relationships
     session = relationship("CourseSession", back_populates="evaluations")

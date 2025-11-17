@@ -1,12 +1,12 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from ..models.record import MeetingRecord, MeetingRecordStatus
 
 
 class MeetingRecordService:
-    def __init__(self, db: Session):
-        self.db = db
+    def __init__(self, db_session: sessionmaker):
+        self.db_session = db_session
 
     def create(self, course_id: int, tutor_id: str, 
                attendees: Optional[str] = None, discussion_points: Optional[str] = None,
@@ -18,31 +18,50 @@ class MeetingRecordService:
             discussion_points=discussion_points,
             status=status
         )
-        self.db.add(record)
-        self.db.commit()
-        self.db.refresh(record)
+        db = self.db_session()
+        db.add(record)
+        db.commit()
+        db.refresh(record)
+        db.close()
         return record
 
     def get_by_id(self, record_id: int) -> Optional[MeetingRecord]:
-        return self.db.query(MeetingRecord).filter(MeetingRecord.id == record_id).first()
+        db = self.db_session()
+        result = db.query(MeetingRecord).filter(MeetingRecord.id == record_id).first()
+        db.close()
+        return result
 
     def get_all(self, skip: int = 0, limit: int = 100) -> List[MeetingRecord]:
-        return self.db.query(MeetingRecord).offset(skip).limit(limit).all()
+        db = self.db_session()
+        result = db.query(MeetingRecord).offset(skip).limit(limit).all()
+        db.close()
+        return result
 
     def get_by_course(self, course_id: int) -> List[MeetingRecord]:
-        return self.db.query(MeetingRecord).filter(MeetingRecord.course_id == course_id).all()
+        db = self.db_session()
+        result = db.query(MeetingRecord).filter(MeetingRecord.course_id == course_id).all()
+        db.close()
+        return result
 
     def get_by_tutor(self, tutor_id: str) -> List[MeetingRecord]:
-        return self.db.query(MeetingRecord).filter(MeetingRecord.tutor_id == tutor_id).all()
+        db = self.db_session()
+        result = db.query(MeetingRecord).filter(MeetingRecord.tutor_id == tutor_id).all()
+        db.close()
+        return result
 
     def get_by_status(self, status: MeetingRecordStatus) -> List[MeetingRecord]:
-        return self.db.query(MeetingRecord).filter(MeetingRecord.status == status).all()
+        db = self.db_session()
+        result = db.query(MeetingRecord).filter(MeetingRecord.status == status).all()
+        db.close()
+        return result
 
     def update(self, record_id: int, attendees: Optional[str] = None,
                discussion_points: Optional[str] = None, 
                status: Optional[MeetingRecordStatus] = None) -> Optional[MeetingRecord]:
-        record = self.get_by_id(record_id)
+        db = self.db_session()
+        record = db.query(MeetingRecord).filter(MeetingRecord.id == record_id).first()
         if not record:
+            db.close()
             return None
         
         if attendees is not None:
@@ -52,9 +71,10 @@ class MeetingRecordService:
         if status is not None:
             record.status = status
         
-        record.updated_at = datetime.utcnow()
-        self.db.commit()
-        self.db.refresh(record)
+        record.updated_at = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(record)
+        db.close()
         return record
 
     def approve(self, record_id: int) -> Optional[MeetingRecord]:
@@ -64,10 +84,13 @@ class MeetingRecordService:
         return self.update(record_id, status=MeetingRecordStatus.REJECTED)
 
     def delete(self, record_id: int) -> bool:
-        record = self.get_by_id(record_id)
+        db = self.db_session()
+        record = db.query(MeetingRecord).filter(MeetingRecord.id == record_id).first()
         if not record:
+            db.close()
             return False
         
-        self.db.delete(record)
-        self.db.commit()
+        db.delete(record)
+        db.commit()
+        db.close()
         return True

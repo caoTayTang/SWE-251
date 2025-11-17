@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, ForeignKey, Text, Time, Date
 from sqlalchemy.orm import relationship, declarative_base, Session
-from datetime import datetime, time, date, timedelta
+from datetime import datetime, time, date, timedelta, timezone
 import enum
 from .base import Base
 # --- Enums for Course Status and Format (Kept from original) ---
@@ -51,8 +51,7 @@ class Course(Base):
     
     cover_image_url = Column(String, nullable=True)
    
-    # --- Foreign Keys ---
-    # FIXED: Changed Integer to String to match MututorUser.id
+
     tutor_id = Column(String, ForeignKey("users.id"), nullable=False, index=True) 
     
     subject_id = Column(Integer, ForeignKey("subjects.id"), nullable=False, index=True)
@@ -61,8 +60,8 @@ class Course(Base):
     max_students = Column(Integer, nullable=False)
     status = Column(Enum(CourseStatus), default=CourseStatus.PENDING, index=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
     
     subject = relationship("Subject", back_populates="courses")

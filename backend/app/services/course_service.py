@@ -1,12 +1,12 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 from typing import List, Optional
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timezone
 from ..models.course import Course, CourseStatus, Level, CourseSession, Subject, CourseFormat, CourseResource
 
 
 class CourseService:
-    def __init__(self, db: Session):
-        self.db = db
+    def __init__(self, db_session: sessionmaker):
+        self.db_session = db_session
 
     def create(self, title: str, tutor_id: str, subject_id: int, max_students: int,
                description: Optional[str] = None, cover_image_url: Optional[str] = None,
@@ -21,34 +21,56 @@ class CourseService:
             max_students=max_students,
             status=status
         )
-        self.db.add(course)
-        self.db.commit()
-        self.db.refresh(course)
+        db = self.db_session()
+        db.add(course)
+        db.commit()
+        db.refresh(course)
+        db.close()
         return course
 
     def get_by_id(self, course_id: int) -> Optional[Course]:
-        return self.db.query(Course).filter(Course.id == course_id).first()
+        db = self.db_session()
+        result = db.query(Course).filter(Course.id == course_id).first()
+        db.close()
+        return result
 
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Course]:
-        return self.db.query(Course).offset(skip).limit(limit).all()
+        db = self.db_session()
+        result = db.query(Course).offset(skip).limit(limit).all()
+        db.close()
+        return result
 
     def get_by_tutor(self, tutor_id: str) -> List[Course]:
-        return self.db.query(Course).filter(Course.tutor_id == tutor_id).all()
+        db = self.db_session()
+        result = db.query(Course).filter(Course.tutor_id == tutor_id).all()
+        db.close()
+        return result
 
     def get_by_subject(self, subject_id: int) -> List[Course]:
-        return self.db.query(Course).filter(Course.subject_id == subject_id).all()
+        db = self.db_session()
+        result = db.query(Course).filter(Course.subject_id == subject_id).all()
+        db.close()
+        return result
 
     def get_by_status(self, status: CourseStatus) -> List[Course]:
-        return self.db.query(Course).filter(Course.status == status).all()
+        db = self.db_session()
+        result = db.query(Course).filter(Course.status == status).all()
+        db.close()
+        return result
 
     def get_by_level(self, level: Level) -> List[Course]:
-        return self.db.query(Course).filter(Course.level == level).all()
+        db = self.db_session()
+        result = db.query(Course).filter(Course.level == level).all()
+        db.close()
+        return result
 
     def update(self, course_id: int, title: Optional[str] = None, description: Optional[str] = None,
                cover_image_url: Optional[str] = None, level: Optional[Level] = None,
                max_students: Optional[int] = None, status: Optional[CourseStatus] = None) -> Optional[Course]:
-        course = self.get_by_id(course_id)
+        db = self.db_session()
+        course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
+            db.close()
             return None
         
         if title is not None:
@@ -64,23 +86,27 @@ class CourseService:
         if status is not None:
             course.status = status
         
-        course.updated_at = datetime.utcnow()
-        self.db.commit()
-        self.db.refresh(course)
+        course.updated_at = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(course)
+        db.close()
         return course
 
     def delete(self, course_id: int) -> bool:
-        course = self.get_by_id(course_id)
+        db = self.db_session()
+        course = db.query(Course).filter(Course.id == course_id).first()
         if not course:
+            db.close()
             return False
         
-        self.db.delete(course)
-        self.db.commit()
+        db.delete(course)
+        db.commit()
+        db.close()
         return True
     
 class CourseSessionService:
-    def __init__(self, db: Session):
-        self.db = db
+    def __init__(self, db_session: sessionmaker):
+        self.db_session = db_session
 
     def create(self, course_id: int, session_number: int, session_date: date,
                start_time: time, end_time: time, format: CourseFormat = CourseFormat.OFFLINE,
@@ -94,32 +120,51 @@ class CourseSessionService:
             format=format,
             location=location
         )
-        self.db.add(session)
-        self.db.commit()
-        self.db.refresh(session)
+        db = self.db_session()
+        db.add(session)
+        db.commit()
+        db.refresh(session)
+        db.close()
         return session
 
     def get_by_id(self, session_id: int) -> Optional[CourseSession]:
-        return self.db.query(CourseSession).filter(CourseSession.id == session_id).first()
+        db = self.db_session()
+        result = db.query(CourseSession).filter(CourseSession.id == session_id).first()
+        db.close()
+        return result
 
     def get_all(self, skip: int = 0, limit: int = 100) -> List[CourseSession]:
-        return self.db.query(CourseSession).offset(skip).limit(limit).all()
+        db = self.db_session()
+        result = db.query(CourseSession).offset(skip).limit(limit).all()
+        db.close()
+        return result
 
     def get_by_course(self, course_id: int) -> List[CourseSession]:
-        return self.db.query(CourseSession).filter(CourseSession.course_id == course_id).order_by(CourseSession.session_number).all()
+        db = self.db_session()
+        result = db.query(CourseSession).filter(CourseSession.course_id == course_id).order_by(CourseSession.session_number).all()
+        db.close()
+        return result
 
     def get_by_date(self, session_date: date) -> List[CourseSession]:
-        return self.db.query(CourseSession).filter(CourseSession.session_date == session_date).all()
+        db = self.db_session()
+        result = db.query(CourseSession).filter(CourseSession.session_date == session_date).all()
+        db.close()
+        return result
 
     def get_by_format(self, format: CourseFormat) -> List[CourseSession]:
-        return self.db.query(CourseSession).filter(CourseSession.format == format).all()
+        db = self.db_session()
+        result = db.query(CourseSession).filter(CourseSession.format == format).all()
+        db.close()
+        return result
 
     def update(self, session_id: int, session_number: Optional[int] = None,
                session_date: Optional[date] = None, start_time: Optional[time] = None,
                end_time: Optional[time] = None, format: Optional[CourseFormat] = None,
                location: Optional[str] = None) -> Optional[CourseSession]:
-        session = self.get_by_id(session_id)
+        db = self.db_session()
+        session = db.query(CourseSession).filter(CourseSession.id == session_id).first()
         if not session:
+            db.close()
             return None
         
         if session_number is not None:
@@ -134,57 +179,200 @@ class CourseSessionService:
             session.format = format
         if location is not None:
             session.location = location
-        
-        self.db.commit()
-        self.db.refresh(session)
+
+        db.commit()
+        db.refresh(session)
+        db.close()
         return session
 
     def delete(self, session_id: int) -> bool:
-        session = self.get_by_id(session_id)
+        db = self.db_session()
+        session = db.query(CourseSession).filter(CourseSession.id == session_id).first()
         if not session:
+            db.close()
             return False
         
-        self.db.delete(session)
-        self.db.commit()
+        db.delete(session)
+        db.commit()
+        db.close()
         return True
     
+    def delete_all_by_course(self, course_id: int) -> bool:
+        db = self.db_session()
+        count = db.query(CourseSession).filter(
+            CourseSession.course_id == course_id
+        ).delete()
+        db.commit()
+        db.close()
+        return count
+    
+class CourseResourceService:
+    def __init__(self, db_session: sessionmaker):
+        self.db_session = db_session
+
+    def create(self, course_id: int, resource_id: int) -> CourseResource:
+        """Create a new course resource link"""
+        course_resource = CourseResource(
+            course_id=course_id,
+            resource_id=resource_id
+        )
+        db = self.db_session()
+        db.add(course_resource)
+        db.commit()
+        db.refresh(course_resource)
+        db.close()
+        return course_resource
+
+    def get_by_id(self, id: int) -> Optional[CourseResource]:
+        """Get a course resource by its ID"""
+        db = self.db_session()
+        result = db.query(CourseResource).filter(CourseResource.id == id).first()
+        db.close()
+        return result
+
+    def get_all(self, skip: int = 0, limit: int = 100) -> List[CourseResource]:
+        """Get all course resources with pagination"""
+        db = self.db_session()
+        result = db.query(CourseResource).offset(skip).limit(limit).all()
+        db.close()
+        return result
+
+    def get_by_course(self, course_id: int) -> List[CourseResource]:
+        """Get all resources for a specific course"""
+        db = self.db_session()
+        result = db.query(CourseResource).filter(CourseResource.course_id == course_id).all()
+        db.close()
+        return result
+
+    def get_by_resource(self, resource_id: int) -> List[CourseResource]:
+        """Get all courses using a specific resource"""
+        db = self.db_session()
+        result = db.query(CourseResource).filter(CourseResource.resource_id == resource_id).all()
+        db.close()
+        return result
+
+    def get_by_course_and_resource(self, course_id: int, resource_id: int) -> Optional[CourseResource]:
+        """Get a specific course-resource link"""
+        db = self.db_session()
+        result = db.query(CourseResource).filter(
+            CourseResource.course_id == course_id,
+            CourseResource.resource_id == resource_id
+        ).first()
+        db.close()
+        return result
+
+    def update(self, id: int, course_id: Optional[int] = None, 
+               resource_id: Optional[int] = None) -> Optional[CourseResource]:
+        """Update a course resource link"""
+        db = self.db_session()
+        course_resource = db.query(CourseResource).filter(CourseResource.id == id).first()
+        if not course_resource:
+            db.close()
+            return None
+        
+        if course_id is not None:
+            course_resource.course_id = course_id
+        if resource_id is not None:
+            course_resource.resource_id = resource_id
+        
+        db.commit()
+        db.refresh(course_resource)
+        db.close()
+        return course_resource
+
+    def delete(self, id: int) -> bool:
+        """Delete a course resource link by ID"""
+        db = self.db_session()
+        course_resource = db.query(CourseResource).filter(CourseResource.id == id).first()
+        if not course_resource:
+            db.close()
+            return False
+        
+        db.delete(course_resource)
+        db.commit()
+        db.close()
+        return True
+
+    def delete_by_course_and_resource(self, course_id: int, resource_id: int) -> bool:
+        """Delete a specific course-resource link"""
+        db = self.db_session()
+        course_resource = db.query(CourseResource).filter(
+            CourseResource.course_id == course_id,
+            CourseResource.resource_id == resource_id
+        ).first()
+        if not course_resource:
+            db.close()
+            return False
+        
+        db.delete(course_resource)
+        db.commit()
+        db.close()
+        return True
+
+    def delete_all_by_course(self, course_id: int) -> int:
+        """Delete all resources for a specific course. Returns count of deleted records."""
+        db = self.db_session()
+        count = db.query(CourseResource).filter(
+            CourseResource.course_id == course_id
+        ).delete()
+        db.commit()
+        db.close()
+        return count
+    
 class SubjectService:
-    def __init__(self, db: Session):
-        self.db = db
+    def __init__(self, db_session: sessionmaker):
+        self.db_session = db_session
 
     def create(self, id: int, name: str) -> Subject:
         subject = Subject(id=id, name=name)
-        self.db.add(subject)
-        self.db.commit()
-        self.db.refresh(subject)
+        db = self.db_session()
+        db.add(subject)
+        db.commit()
+        db.refresh(subject)
+        db.close()
         return subject
 
     def get_by_id(self, subject_id: int) -> Optional[Subject]:
-        return self.db.query(Subject).filter(Subject.id == subject_id).first()
+        db = self.db_session()
+        result = db.query(Subject).filter(Subject.id == subject_id).first()
+        db.close()
+        return result
 
     def get_by_name(self, name: str) -> Optional[Subject]:
-        return self.db.query(Subject).filter(Subject.name == name).first()
+        db = self.db_session()
+        result = db.query(Subject).filter(Subject.name == name).first()
+        db.close()
+        return result
 
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Subject]:
-        return self.db.query(Subject).offset(skip).limit(limit).all()
+        db = self.db_session()
+        result = db.query(Subject).offset(skip).limit(limit).all()
+        db.close()
+        return result
 
     def update(self, subject_id: int, name: Optional[str] = None) -> Optional[Subject]:
-        subject = self.get_by_id(subject_id)
+        db = self.db_session()
+        subject = db.query(Subject).filter(Subject.id == subject_id).first()
         if not subject:
+            db.close()
             return None
         
         if name is not None:
             subject.name = name
         
-        self.db.commit()
-        self.db.refresh(subject)
+        db.commit()
+        db.refresh(subject)
+        db.close()
         return subject
 
     def delete(self, subject_id: int) -> bool:
-        subject = self.get_by_id(subject_id)
+        db = self.db_session()
+        subject = db.query(Subject).filter(Subject.id == subject_id).first()
         if not subject:
+            db.close()
             return False
         
-        self.db.delete(subject)
-        self.db.commit()
+        db.delete(subject)
+        db.commit()
+        db.close()
         return True

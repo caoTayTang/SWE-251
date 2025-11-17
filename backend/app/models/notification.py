@@ -1,7 +1,7 @@
 # <filename>notification.py</filename>
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Enum, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime, time, date, timedelta
+from datetime import datetime, time, date, timezone
 import enum
 from .base import Base
 
@@ -26,7 +26,7 @@ class Notification(Base):
     content = Column(Text, nullable=False)
     is_read = Column(Boolean, default=False)
     related_id = Column(Integer, nullable=True)  # ID of related course.
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     # Relationships
 

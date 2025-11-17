@@ -4,12 +4,11 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
+from .base import Base
 
-# --- Database Base Setup ---
-Base = declarative_base()
 
 # --- Enum cho vai trò (Role) ---
-class UserRole(str, enum.Enum):
+class HcmutUserRole(str, enum.Enum):
     """
     Xác định các vai trò cơ bản trong hệ thống DATACORE.
     Đây là cột 'discriminator' (phân biệt) cho mô hình kế thừa.
@@ -41,7 +40,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False) # Email học vụ
     profile_picture = Column(String, nullable=True) # Corresponds to avatarUrl
     # Cột phân biệt vai trò
-    role = Column(Enum(UserRole), nullable=False, index=True)
+    role = Column(Enum(HcmutUserRole), nullable=False, index=True)
     department = Column(String, nullable=False) # Khoa
 
     # Trạng thái chung
@@ -73,7 +72,7 @@ class Student(User):
 
     # --- Cấu hình Kế thừa ---
     __mapper_args__ = {
-        'polymorphic_identity': UserRole.STUDENT, # Định danh lớp này là 'student'
+        'polymorphic_identity': HcmutUserRole.STUDENT, # Định danh lớp này là 'student'
     }
 
     def __repr__(self):
@@ -94,134 +93,10 @@ class Staff(User):
 
     # --- Cấu hình Kế thừa ---
     __mapper_args__ = {
-        'polymorphic_identity': UserRole.STAFF, # Định danh lớp này là 'staff'
+        'polymorphic_identity': HcmutUserRole.STAFF, # Định danh lớp này là 'staff'
     }
 
     def __repr__(self):
         return (f"<Staff(id={self.id}, username={self.username}, "
                 f"staff_id={self.staff_id}, position={self.position})>")
 
-# --- Khối thực thi chính để khởi tạo và thêm dữ liệu mẫu ---
-if __name__ == "__main__":
-    
-    # 1. Thiết lập CSDL SQLite trong bộ nhớ
-    DATABASE_URL = "sqlite:///hcmut.db"
-    engine = create_engine(DATABASE_URL)
-    # 2. Tạo tất cả các bảng (User, Student, Staff)
-    Base.metadata.create_all(engine)
-    
-    # 3. Tạo một phiên (session) để tương tác với CSDL
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    db = SessionLocal()
-    
-    # 4. Dữ liệu mẫu (Sample data)
-    sample_data = [
-        {
-            "full_name": "Nguyễn Văn A",
-            "email": "a.nguyen21@hcmut.edu.vn",
-            "role": UserRole.STUDENT,
-            "status": AcademicStatus.ACTIVE,
-            "student_id": "2210001",
-            "department": "Khoa Khoa học và Kỹ thuật Máy tính",
-            "major": "Khoa học Máy tính"
-        },
-        {
-            "full_name": "Trần Thị B",
-            "email": "b.tran20@hcmut.edu.vn",
-            "role": UserRole.STUDENT,
-            "status": AcademicStatus.ACTIVE,
-            "student_id": "2010002",
-            "department": "Khoa Kỹ thuật Cơ khí",
-            "major": "Kỹ thuật Cơ khí"
-        },
-        {
-            "full_name": "Lê Văn C",
-            "email": "c.levan@hcmut.edu.vn",
-            "role": UserRole.STAFF,
-            "status": AcademicStatus.ACTIVE,
-            "staff_id": "1235",
-            "department": "Khoa Khoa học và Kỹ thuật Máy tính",
-            "position": "Giảng viên" # Lecturer
-        },
-        {
-            "full_name": "Phạm Thị D",
-            "email": "d.phamthi@hcmut.edu.vn",
-            "role": UserRole.STAFF,
-            "status": AcademicStatus.ACTIVE,
-            "staff_id": "0102",
-            "department": "Ban Giám hiệu",
-            "position": "Ban quản lý" # Management
-        },
-        {
-            "full_name": "Hoàng Văn E",
-            "email": "e.hoang21@hcmut.edu.vn",
-            "role": UserRole.STUDENT,
-            "status": AcademicStatus.ON_LEAVE,
-            "student_id": "2310003",
-            "department": "Khoa Kỹ thuật Hóa học",
-            "major": "Kỹ thuật Hóa học"
-        }
-    ]
-
-    print("--- Bắt đầu thêm dữ liệu mẫu vào HCMUT_DATACORE ---")
-    
-    try:
-        # 5. Vòng lặp qua dữ liệu và tạo đối tượng
-        for data in sample_data:
-            new_object = None
-            if data["role"] == UserRole.STUDENT:
-                new_object = Student(
-                    id=data["student_id"],
-                    username=data["email"].split('@')[0],
-                    full_name=data["full_name"],
-                    email=data["email"],
-                    status=data["status"],      
-                    department=data["department"],
-                    major=data["major"]
-                )
-                print(f"Đang tạo Sinh viên: {data['full_name']}")
-                
-            elif data["role"] == UserRole.STAFF:
-                new_object = Staff(
-                    id=data["staff_id"],
-                    username=data["email"].split('@')[0],
-                    full_name=data["full_name"],
-                    email=data["email"],
-                    status=data["status"],
-                    department=data["department"],
-                    position=data["position"]
-                )
-                print(f"Đang tạo Cán bộ: {data['full_name']}")
-            
-            if new_object:
-                db.add(new_object)
-        
-        # 6. Lưu tất cả thay đổi vào CSDL
-        db.commit()
-        print("--- Đã lưu dữ liệu thành công ---")
-        
-        # 7. Truy vấn CSDL để xác minh
-        print("\n--- Xác minh dữ liệu từ CSDL ---")
-        
-        print("\nTruy vấn tất cả User (chung):")
-        all_users = db.query(User).all()
-        for user in all_users:
-            print(f"  -> {user}")
-
-        print("\nTruy vấn chỉ Student (riêng):")
-        all_students = db.query(Student).all()
-        for student in all_students:
-            print(f"  -> {student}")
-
-        print("\nTruy vấn chỉ Staff (riêng):")
-        all_staff = db.query(Staff).all()
-        for staff in all_staff:
-            print(f"  -> {staff}")
-
-    except Exception as e:
-        print(f"Đã xảy ra lỗi: {e}")
-        db.rollback()
-    finally:
-        # 8. Đóng phiên
-        db.close()
-        print("\n--- Đã đóng phiên CSDL ---")
