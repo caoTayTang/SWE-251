@@ -17,7 +17,7 @@ notification_service = NotificationService(mututor_session)
 def get_feedback(
    current_user: MuSession = Depends(get_current_user_from_session)
 ):
-    if current_user.role != UserRole('tutor') or current_user.role != UserRole('admin'):
+    if current_user.role != UserRole('tutor') and current_user.role != UserRole('admin'):
         raise HTTPException(status_code=403, detail="Not authorized, requires TUTOR or ADMIN role")
     ###TODO
     return "OK"
@@ -26,7 +26,7 @@ def get_feedback(
 def get_feedback_topics(
    current_user: MuSession = Depends(get_current_user_from_session)
 ):
-    if current_user.role != UserRole('tutor') or current_user.role != UserRole('admin'):
+    if current_user.role != UserRole('tutor') and current_user.role != UserRole('admin'):
         raise HTTPException(status_code=403, detail="Not authorized, requires TUTOR or ADMIN role")
     ###TODO
     return "OK"
@@ -36,7 +36,7 @@ def create_feedback(
     data: dict = Body(...),
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
-    if current_user.role != UserRole('tutor') or current_user.role != UserRole('admin'):
+    if current_user.role != UserRole('tutor') and current_user.role != UserRole('admin'):
         raise HTTPException(status_code=403, detail="Not authorized, requires TUTOR or ADMIN role")
     
     feedback = data.get('feedbackData')
