@@ -135,20 +135,18 @@ def create_session_evaluation(
         raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
     
     try:
-        # Verify enrollment
+
         enrollment = enrollment_service.get_by_tutee_and_course(current_user.user_id, course_id)
         if not enrollment or enrollment.status != EnrollmentStatus.ENROLLED:
-            raise HTTPException(status_code=403, detail="You must be enrolled in this course to evaluate sessions")
-        
-        # Verify session exists and belongs to the course
+            raise HTTPException(status_code=403, detail="You must be enrolled in this course to evaluate sessions")   
+
         session = course_session_service.get_by_id(session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
         
         if session.course_id != course_id:
-            raise HTTPException(status_code=400, detail="Session does not belong to this course")
-        
-        # Check if evaluation already exists
+            raise HTTPException(status_code=400, detail="Session does not belong to this course")     
+
         existing_evaluations = session_evaluation_service.get_by_enrollment(enrollment.id)
         for eval in existing_evaluations:
             if eval.session_id == session_id:

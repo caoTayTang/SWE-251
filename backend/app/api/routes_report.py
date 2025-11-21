@@ -184,7 +184,6 @@ def track_specific_tutee(
         for enrollment in enrollments:
             course = course_service.get_by_id(enrollment.course_id)
             if course:
-                # Get evaluations for this enrollment
                 evaluations = session_evaluation_service.get_by_enrollment(enrollment.id)
                 
                 enrollments_data.append({
