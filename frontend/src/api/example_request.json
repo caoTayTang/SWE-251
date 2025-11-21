@@ -1,0 +1,47 @@
+{
+  "courseData": { //create_course
+          "title": "Học với Abe",
+          "subject_id": "666",
+          "max_students": "25",
+          "description": "cam on vi da den",
+          "level": "beginner",
+          "status": "open"
+        },
+        "courseSessions": [
+          {
+            "session_number": 1,
+            "session_date": "2025-11-29", 
+            "start_time": "08:00",
+            "end_time": "10:30",
+            "format": "offline", 
+            "location": "GDH6"
+          },
+          {
+            "session_number": 2,
+            "session_date": "2025-11-30", 
+            "start_time": "08:00",
+            "end_time": "10:30",
+            "format": "offline", 
+            "location": "GDH6"
+          }
+        ],
+        "courseResources": [1,5]
+}
+
+{ //modify course
+  "id": 3,
+  "updatedData": {
+    "description": "xin loi vi da den",
+    "level": "advanced"
+  },
+  "updatedSessionData": {
+    "session_number": 1,
+    "session_date": "2025-12-05",
+    "start_time": "08:00",
+    "end_time": "11:00",
+    "format": "online",
+    "location": "toi-yeu-mu.com"
+  },
+  "courseSessionId": 1,
+  "courseResources": [1, 2, 3]
+}

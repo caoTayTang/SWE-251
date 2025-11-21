@@ -158,14 +158,14 @@ const API_ROUTES = {
       }
     },
 
-    modifyCourse: {
+    modifyCourse: { 
       method: 'PUT',
       path: '/api/courses',
       requiresAuth: true,
       requiresRole: 'tutor',
       input: {
         id: 'number', // course_id
-        updatedData: {
+        updatedData: { //for course data
           title: 'string',
           description: 'string',
           cover_image_url: 'string',
@@ -173,7 +173,7 @@ const API_ROUTES = {
           max_students: 'number',
           status: 'string'
         },
-        updatedSessionData: {
+        updatedSessionData: { //for course session data - modify one session at a time
           session_number: 'number',
           session_date: 'string', // YYYY-MM-DD
           start_time: 'string', // HH:MM

@@ -157,7 +157,7 @@ def create_course(
                     location=location
                 )
                 if format == CourseFormat.OFFLINE:
-                    ret = hcmut_api.book_room(location, current_user.user_id, session_date, start_time, end_time, f"Book room for course {course_data.get('title')}")
+                    ret = hcmut_api.book_room(location, current_user.user_id, session_date, start_time, end_time, f"Booked room for course {course_data.get('title')}")
                     if not ret:
                         raise HTTPException(status_code=400,detail={ "message": "Invalid resource IDs","errors": f"Failed to book room: {location}"})
                 created_sessions.append({
@@ -285,7 +285,7 @@ def modify_course(
                 session_date = datetime.strptime(updated_session_data.get('session_date'), '%Y-%m-%d').date()
                 start_time = datetime.strptime(updated_session_data.get('start_time'), '%H:%M').time()
                 end_time = datetime.strptime(updated_session_data.get('end_time'), '%H:%M').time()
-                format=CourseFormat(updated_session_data.get('format', 'online')),
+                format=CourseFormat(updated_session_data.get('format', "online"))
                 location=updated_session_data.get('location')
                 updated_session = course_session_service.update(
                     session_id=old_session.id,
@@ -302,7 +302,7 @@ def modify_course(
                     hcmut_api.cancel_booking(old_schedule.id, current_user.user_id)
                     
                 if format == CourseFormat.OFFLINE:
-                    ret = hcmut_api.book_room(location, current_user.user_id, session_date, start_time, end_time, f"Book room for course {updated_data.get('title')}")
+                    ret = hcmut_api.book_room(location, current_user.user_id, session_date, start_time, end_time, f"Booked room for course {updated_data.get('title')}")
                     if not ret:
                         raise HTTPException(status_code=400,detail={ "message": "Invalid resource IDs","errors": f"Failed to book room: {location}"})
             except Exception as e:
