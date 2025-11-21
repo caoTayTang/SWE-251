@@ -107,13 +107,14 @@ def create_course(
                     status_code=400,
                     detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room not found for room {room_name}"})
             
-            room_result = hcmut_api.can_book_room(room_id=room.id,tutor_id=current_user.user_id,sessions=session_data)
+            capacity = course_data.get('max_students')
+            room_result = hcmut_api.can_book_room(room_id=room.id,tutor_id=current_user.user_id,sessions=session_data,capacity=capacity if capacity is not None else None)
             
             if not room_result:
                 other_room = [room.name for room in hcmut_api.get_free_rooms_by_datetime(session_date,start_time,end_time)]
                 raise HTTPException(
-                    status_code=400,
-                    detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room validation failed, other free room: {other_room}"} )
+                    status_code=400,    
+                    detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room validation fails, other free room: {other_room}"} )
 
     if course_resources:
         resource_validation = hcmut_api.validate_course_resources(course_resources)      
@@ -247,7 +248,8 @@ def modify_course(
                     status_code=400,
                     detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room not found for room {room_name}"})
             
-            room_result = hcmut_api.can_book_room(room_id=room.id,tutor_id=current_user.user_id,sessions=updated_session_data,exclude_session=old_session)
+            capacity = updated_data.get('max_students')
+            room_result = hcmut_api.can_book_room(room_id=room.id,tutor_id=current_user.user_id,sessions=updated_session_data,exclude_session=old_session,capacity=capacity if capacity is not None else None)
             
             if not room_result:
                 old_room = None if old_session.format == CourseFormat.ONLINE else old_session.location

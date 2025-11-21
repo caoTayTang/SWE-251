@@ -304,7 +304,7 @@ class HCMUT_API:
             return free_rooms
     
     def can_book_room(self, room_id: int, target_date: date,
-                      start_time: time, end_time: time, exclude_session: Dict = None) -> bool:
+                      start_time: time, end_time: time, exclude_session: Dict = None, capacity:int=None) -> bool:
         """
         Check if a specific room can be booked for the given date and time.
         
@@ -317,6 +317,10 @@ class HCMUT_API:
         Returns:
             bool: True if room is available, False otherwise
         """
+
+        if capacity:
+            if not self.check_capacity(room_id, capacity): return False
+
         with self.db_session() as session:
             overlapping = session.query(RoomSchedule).filter(
                 and_(
@@ -440,6 +444,12 @@ class HCMUT_API:
                 return True
             return False
     
+    def check_capacity(self,room_id, capacity:int) -> bool:
+        room = self.get_room_by_id(room_id)
+        if not room: return False
+        if room.capacity < capacity: return False
+        return True
+
     def validate_course_resources(self, resource_ids: List[int]) -> Dict:
         """
         Validate that all resource IDs exist in the library database.

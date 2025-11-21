@@ -10,7 +10,7 @@ from ..hcmut_database import*
 
 logger = get_logger("LOGIN")
 router = APIRouter()
-
+user_service = UserService(mututor_session)
 
 @router.get("/roles")
 def get_role():
@@ -29,16 +29,22 @@ def login(
     password = data.get("password")
     role = data.get("role")
     
-    logger.info(role.__len__())
+    #logger.info(role.__len__())
     if not hcmut_api.check_password(username, password) :
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=401,
             detail="Incorrect username or password",
         )
 
     user = hcmut_api.get_user_by_username(username)
     user_id = user.id
-
+    if role.lower() == 'tutor' or role.lower() == 'admin':
+        mu_user = user_service.get_by_id(user_id)
+        if not mu_user or mu_user.role != role:
+            raise HTTPException(
+            status_code=403,
+            detail=f"You don't have permission to login as {role}",
+        )
 
     session = MuSession(
         session_id=str(uuid.uuid4()),
