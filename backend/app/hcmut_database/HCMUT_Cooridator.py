@@ -20,11 +20,10 @@ class Room(Base):
     __tablename__ = "coordinator_room"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False, index=True) # VD: "H6-301"
-    capacity = Column(Integer, nullable=True) # Sức chứa
+    name = Column(String, unique=True, nullable=False, index=True) 
+    capacity = Column(Integer, nullable=True) 
     room_type = Column(Enum(RoomType), default=RoomType.STANDARD_ROOM)
 
-    # Relationship: 
     schedules = relationship("RoomSchedule", back_populates="room")
 
     def __repr__(self):
@@ -38,20 +37,18 @@ class RoomSchedule(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     room_id = Column(Integer, ForeignKey("coordinator_room.id"), nullable=False)
-    user_id = Column(String, ForeignKey("datacore_users.id"), nullable=True) # Link đến Staff
+    user_id = Column(String, ForeignKey("datacore_users.id"), nullable=True)  
     
-    date = Column(Date, nullable=False, index=True) # Yêu cầu: "day (dd/mm/yyyy)"
-    start_time = Column(Time, nullable=False) # Yêu cầu: "time"
-    end_time = Column(Time, nullable=False) # Yêu cầu: "time"
-    
+    date = Column(Date, nullable=False, index=True) 
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False) 
 
     status = Column(Enum(RoomStatus), default=RoomStatus.FREE, index=True)
     
-    note = Column(Text, nullable=True) # Ghi chú thêm
+    note = Column(Text, nullable=True)
     
     created_at = Column(DateTime, default=datetime.utcnow)
-    
-    # --- Relationships ---
+
     room = relationship("Room", back_populates="schedules")
     user = relationship("User")
 

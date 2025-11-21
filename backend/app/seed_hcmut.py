@@ -68,10 +68,8 @@ def seed_lib(engine, db:Session):
     print("--- Bắt đầu thêm dữ liệu mẫu vào HCMUT_Library ---")
     
     try:
-        # 5. Vòng lặp qua dữ liệu và tạo đối tượng
+
         for data in sample_resources:
-            
-            # 5a. Kiểm tra xem Uploader có tồn tại trong CSDL không
             uploader = db.query(User).filter_by(id=data["uploader_id"]).first()
             if not uploader:
                 print(f"Lỗi: Không tìm thấy Uploader ID: {data['uploader_id']}. Bỏ qua tài liệu: {data['name']}")
@@ -117,7 +115,7 @@ def seed_user(engine, db:Session):
         {
             "full_name": "Nguyễn Văn A",
             "email": "a.nguyen21@hcmut.edu.vn",
-            "role": UserRole.STUDENT,
+            "role": HcmutUserRole.STUDENT,
             "status": AcademicStatus.ACTIVE,
             "student_id": "2210001",
             "department": "Khoa Khoa học và Kỹ thuật Máy tính",
@@ -126,7 +124,7 @@ def seed_user(engine, db:Session):
         {
             "full_name": "Trần Thị B",
             "email": "b.tran20@hcmut.edu.vn",
-            "role": UserRole.STUDENT,
+            "role": HcmutUserRole.STUDENT,
             "status": AcademicStatus.ACTIVE,
             "student_id": "2010002",
             "department": "Khoa Kỹ thuật Cơ khí",
@@ -135,7 +133,7 @@ def seed_user(engine, db:Session):
         {
             "full_name": "Lê Văn C",
             "email": "c.levan@hcmut.edu.vn",
-            "role": UserRole.STAFF,
+            "role": HcmutUserRole.STAFF,
             "status": AcademicStatus.ACTIVE,
             "staff_id": "1235",
             "department": "Khoa Khoa học và Kỹ thuật Máy tính",
@@ -144,7 +142,7 @@ def seed_user(engine, db:Session):
         {
             "full_name": "Phạm Thị D",
             "email": "d.phamthi@hcmut.edu.vn",
-            "role": UserRole.STAFF,
+            "role": HcmutUserRole.STAFF,
             "status": AcademicStatus.ACTIVE,
             "staff_id": "0102",
             "department": "Ban Giám hiệu",
@@ -153,7 +151,7 @@ def seed_user(engine, db:Session):
         {
             "full_name": "Hoàng Văn E",
             "email": "e.hoang21@hcmut.edu.vn",
-            "role": UserRole.STUDENT,
+            "role": HcmutUserRole.STUDENT,
             "status": AcademicStatus.ON_LEAVE,
             "student_id": "2310003",
             "department": "Khoa Kỹ thuật Hóa học",
@@ -164,10 +162,9 @@ def seed_user(engine, db:Session):
     print("--- Bắt đầu thêm dữ liệu mẫu vào HCMUT_DATACORE ---")
     
     try:
-        # 5. Vòng lặp qua dữ liệu và tạo đối tượng
         for data in sample_data:
             new_object = None
-            if data["role"] == UserRole.STUDENT:
+            if data["role"] == HcmutUserRole.STUDENT:
                 new_object = Student(
                     id=data["student_id"],
                     username=data["email"].split('@')[0],
@@ -179,7 +176,7 @@ def seed_user(engine, db:Session):
                 )
                 print(f"Đang tạo Sinh viên: {data['full_name']}")
                 
-            elif data["role"] == UserRole.STAFF:
+            elif data["role"] == HcmutUserRole.STAFF:
                 new_object = Staff(
                     id=data["staff_id"],
                     username=data["email"].split('@')[0],
@@ -193,12 +190,10 @@ def seed_user(engine, db:Session):
             
             if new_object:
                 db.add(new_object)
-        
-        # 6. Lưu tất cả thay đổi vào CSDL
+
         db.commit()
         print("--- Đã lưu dữ liệu thành công ---")
-        
-        # 7. Truy vấn CSDL để xác minh
+
         print("\n--- Xác minh dữ liệu từ CSDL ---")
         
         print("\nTruy vấn tất cả User (chung):")
@@ -220,7 +215,6 @@ def seed_user(engine, db:Session):
         print(f"Đã xảy ra lỗi: {e}")
         db.rollback()
     finally:
-        # 8. Đóng phiên
         db.close()
         print("\n--- Đã đóng phiên CSDL ---")
 
@@ -279,7 +273,6 @@ def seed_room(engine, db:Session):
 
 
             schedule_data = [
-                # Lịch 1 (Approved - Booked)
                 {
                     "room_id": phong_h6_301.id, "user_id": nguoi_dat_gv.id,
                     "date": date(2025, 11, 18), # Thứ 3
@@ -287,7 +280,6 @@ def seed_room(engine, db:Session):
                     "status": RoomStatus.BOOKED,
                     "note": "Giảng dạy: CO1001 - Nhập môn Lập trình"
                 },
-                # Lịch 2 (Approved - Cùng phòng, khác ngày/giờ)
                 {
                     "room_id": phong_h6_301.id, "user_id": nguoi_dat_gv.id,
                     "date": date(2025, 11, 20), # Thứ 5
@@ -295,7 +287,6 @@ def seed_room(engine, db:Session):
                     "status": RoomStatus.BOOKED,
                     
                 },
-                # Lịch 3 (Pending)
                 {
                     "room_id": phong_c6_510.id, "user_id": nguoi_dat_gv.id,
                     "date": date(2025, 11, 19), # Thứ 4
@@ -303,7 +294,6 @@ def seed_room(engine, db:Session):
                     "status": RoomStatus.BOOKED,
                    
                 },
-                # Lịch 4 (Cancelled)
                 {
                     "room_id": phong_gdh6.id, "user_id": nguoi_dat_gv.id,
                     "date": date(2025, 11, 21), # Thứ 6

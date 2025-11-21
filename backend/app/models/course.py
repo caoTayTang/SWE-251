@@ -17,7 +17,7 @@ class CourseFormat(str, enum.Enum):
     ONLINE = "online"
     OFFLINE = "offline"
 
-# --- New Models based on Mock Data ---
+
 
 class Subject(Base):
     """
@@ -25,11 +25,10 @@ class Subject(Base):
     Corresponds to mockSubjects.
     """
     __tablename__ = "subjects"
-    # Using specific ID 101, 102 etc. from mock data
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False, unique=True, index=True)
 
-    # Relationship
     courses = relationship("Course", back_populates="subject")
 
     def __repr__(self):
@@ -40,7 +39,6 @@ class Level(str, enum.Enum):
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
 
-# --- Main Course Model (Modified) ---
 
 class Course(Base):
     __tablename__ = "courses"
@@ -100,12 +98,11 @@ class CourseSession(Base):
     format = Column(Enum(CourseFormat), default=CourseFormat.OFFLINE)
     location = Column(String, nullable=True)  #  class room for offline courses or link for online courses
 
-    # Relationship
+
     course = relationship("Course", back_populates="sessions")
     evaluations = relationship("SessionEvaluation", back_populates="session", cascade="all, delete-orphan")
     
     def __repr__(self):
-        # --- MODIFIED: Updated repr ---
         return f"<CourseSession(course_id={self.course_id}, session_id={self.id}, date={self.session_date})>"
 
 class CourseResource(Base):

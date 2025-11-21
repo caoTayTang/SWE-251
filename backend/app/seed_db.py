@@ -22,7 +22,7 @@ def seed_user(engine, db):
 
     try:
         for u in mock_users:
-            # Check for existing username
+
             existing = db.query(MututorUser).filter_by(username=u["username"]).first()
             if existing:
                 print(f"User '{u['username']}' already exists, skipping.")
@@ -53,8 +53,7 @@ def seed_notification(engine, db):
 
     try:
         print("Seeding Notifications...")
-        
-        # We will assign all mock notifications to TUTEE_ID_1 for this example
+
         TUTEE_ID_1 = '2010002'
         TUTOR_ID_1 = '2310003'
         now = datetime.utcnow()
@@ -66,9 +65,9 @@ def seed_notification(engine, db):
                 "type": NotificationType.SESSION_REMINDER,
                 "title": "Nhắc nhở sự kiện",
                 "content": "Khóa học Kinh tế lượng sắp bắt đầu",
-                "is_read": False, # Mock 'unread: true'
-                "related_id": 1, # Course ID
-                "created_at": now - timedelta(hours=2) # Mock '2 giờ trước'
+                "is_read": False,
+                "related_id": 1, 
+                "created_at": now - timedelta(hours=2) 
             },
             {
                 "id": 2,
@@ -76,9 +75,9 @@ def seed_notification(engine, db):
                 "type": NotificationType.ENROLLMENT_SUCCESS,
                 "title": "Đăng ký thành công",
                 "content": "Bạn đã được thêm vào lớp Lập trình C++",
-                "is_read": False, # Mock 'unread: true'
-                "related_id": 2, # Course ID
-                "created_at": now - timedelta(days=1) # Mock '1 ngày trước'
+                "is_read": False, 
+                "related_id": 2, 
+                "created_at": now - timedelta(days=1)
             },
             {
                 "id": 3,
@@ -88,7 +87,7 @@ def seed_notification(engine, db):
                 "content": "Thầy đẹp trai quá",
                 "is_read": True, 
                 "related_id": None,
-                "created_at": now - timedelta(days=3) # Mock '3 ngày trước'
+                "created_at": now - timedelta(days=3) 
             }
         ]
 
@@ -134,7 +133,6 @@ def seed_course(engine,db):
                 created_at=datetime.fromisoformat("2025-10-01T10:00:00Z")
             )
             db.add(course1)
-            # FIXED: 'id=1' is now 'session_number=1', etc. The 'id' PK is auto-generated.
             db.add_all([
                 CourseSession(session_number=1, course=course1, session_date=date(2025, 11, 13), start_time=time(18, 0), end_time=time(20, 0), location="H1-201", format=CourseFormat.OFFLINE),
                 CourseSession(session_number=2, course=course1, session_date=date(2025, 11, 20), start_time=time(18, 0), end_time=time(20, 0), location="H1-201", format=CourseFormat.OFFLINE),
@@ -224,7 +222,7 @@ def seed_enrollment(engine,db):
         ]
         for data in enrollments_data:
             if not db.query(Enrollment).filter_by(id=data['id']).first():
-                if db.query(Course).filter_by(id=data['courseId']).first(): # Check course exists
+                if db.query(Course).filter_by(id=data['courseId']).first():
                     db.add(Enrollment(
                         id=data['id'], tutee_id=data['tuteeId'], course_id=data['courseId'],
                         enrollment_date=datetime.fromisoformat(data['enrolledAt']),
@@ -268,7 +266,7 @@ def seed_feeback_eval(engine,db):
                 
             },
             {
-                "id": 3, "user_id": "2210001", # A different user
+                "id": 3, "user_id": "2210001", 
                 "topic": "Yêu cầu tính năng mới",
                 "content": "Nên có tính năng chat realtime với giáo viên.",
                 "is_anonymous": True
@@ -288,12 +286,11 @@ def seed_feeback_eval(engine,db):
         db.commit()
         print("Committed Feedbacks.")
 
-        # --- 6. Add Session Evaluations (Optional but good) ---
+
         print("Seeding Session Evaluations...")
-        
-        # Find the first session of course 1
+
         session_to_eval = db.query(CourseSession).filter_by(course_id=1, session_number=1).first()
-        # Find the first enrollment
+
         enrollment_to_eval = db.query(Enrollment).filter_by(id=1).first()
 
         if session_to_eval and enrollment_to_eval:

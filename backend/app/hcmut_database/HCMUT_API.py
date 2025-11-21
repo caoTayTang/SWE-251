@@ -12,8 +12,6 @@ class HCMUT_API:
     def __init__(self, db_session: sessionmaker):
         self.db_session = db_session
 
-    #def check_course_conflict(self, tutor_id:str, session_list: List, resource_list: List)
-
     # ==================== SSO APIs ====================
     
     def check_password(self, username: str, plain_password: str) -> bool:
@@ -282,13 +280,11 @@ class HCMUT_API:
             exclude_room = self.get_room_by_name(exclude_room)
 
         with self.db_session() as session:
-            # Find all rooms that have overlapping booked schedules
             booked_rooms = session.query(RoomSchedule.room_id).filter(
                 and_(
                     RoomSchedule.date == target_date,
                     RoomSchedule.status == RoomStatus.BOOKED,
                     or_(
-                        # Overlapping conditions
                         and_(RoomSchedule.start_time <= start_time, RoomSchedule.end_time > start_time),
                         and_(RoomSchedule.start_time < end_time, RoomSchedule.end_time >= end_time),
                         and_(RoomSchedule.start_time >= start_time, RoomSchedule.end_time <= end_time)
@@ -362,7 +358,6 @@ class HCMUT_API:
             RoomSchedule object if successful, None if room is not available
         """
         with self.db_session() as session:
-            # First check if the room can be booked
             room = self.get_room_by_name(room_name)
             if not room: return None
  

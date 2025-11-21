@@ -5,14 +5,13 @@ from .base import Base
 import uuid
 from datetime import datetime, timedelta, timezone
 
-# --- Define Enum for Roles ---
 class UserRole(str, enum.Enum):
     """Các vai trò cơ bản trong hệ thống."""
     TUTOR = "tutor"
     ADMIN = "admin"
     TUTEE = "tutee"
 
-# --- Define Model ---
+
 class MututorUser(Base):
     """Phân quyền cho MuChat."""
     __tablename__ = "users"

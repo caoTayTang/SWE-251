@@ -1,4 +1,3 @@
-# <filename>notification.py</filename>
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Enum, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime, time, date, timezone
@@ -17,18 +16,15 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
-    
-    # FIXED: Changed from Integer to String to match the MututorUser.id
+
     user_id = Column(String, nullable=False, index=True)  #target user
     
     type = Column(Enum(NotificationType), nullable=False)
     title = Column(String, nullable=False)
     content = Column(Text, nullable=False)
     is_read = Column(Boolean, default=False)
-    related_id = Column(Integer, nullable=True)  # ID of related course.
+    related_id = Column(Integer, nullable=True) 
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
-
-    # Relationships
 
     #user = relationship("MututorUser", back_populates="notifications") 
 

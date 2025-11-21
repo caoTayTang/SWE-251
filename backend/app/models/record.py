@@ -22,7 +22,6 @@ class MeetingRecord(Base):
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
-    # Relationships
     course = relationship("Course", back_populates="meeting_records")
     #tutor = relationship("User", back_populates="meeting_records") 
 

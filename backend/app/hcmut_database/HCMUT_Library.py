@@ -18,7 +18,6 @@ class FileType(str, enum.Enum):
     PPTX = "pptx"
     OTHER = "other"
 
-# --- Model Thư viện ---
 
 class LibraryResource(Base):
     """
@@ -29,19 +28,15 @@ class LibraryResource(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False, index=True)
     
-    # Cột này phân biệt 'material' và 'exam'
     resource_type = Column(Enum(ResourceType), nullable=False, index=True) 
     
     file_type = Column(Enum(FileType), nullable=False)
-    file_size = Column(String, nullable=True) # VD: "2.1 MB"
+    file_size = Column(String, nullable=True) # "2.1 MB"
     
-    # Foreign key trỏ đến bảng 'datacore_users'
-    # Phải là String để khớp với User.id (VD: "2210001")
     uploader_id = Column(String, ForeignKey("datacore_users.id"), nullable=False)
     
     uploaded_at = Column(DateTime, default=datetime.utcnow)
     
-    # Tạo relationship đến User
     uploader = relationship("User") 
 
     def __repr__(self):
