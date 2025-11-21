@@ -128,10 +128,6 @@ def download_resource(
         if not resource:
             raise HTTPException(status_code=404, detail="Resource not found")
         
-        # In a real implementation, this would:
-        # 1. Generate a temporary download URL
-        # 2. Log the download activity
-        # 3. Track download statistics
         
         return {
             "status": "success",
@@ -141,7 +137,7 @@ def download_resource(
                 "name": resource.name,
                 "file_type": resource.file_type.value,
                 "file_size": resource.file_size,
-                # In production, this would be a signed URL or direct file path
+
                 "download_url": f"/files/library/{resource.id}.{resource.file_type.value}"
             },
             "downloaded_by": current_user.user_id,
@@ -171,16 +167,14 @@ def attach_resource(
     
     if not resource_id or not course_id:
         raise HTTPException(status_code=400, detail="Missing required fields: docId and classId")
-    
-    # Verify tutor_id matches current user if provided
+
     if tutor_id and tutor_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="You can only attach resources to your own courses")
     
     try:      
         course_service = CourseService(mututor_session)
         course_resource_service = CourseResourceService(mututor_session)
-        
-        # Verify course exists and belongs to tutor
+
         course = course_service.get_by_id(course_id)
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
@@ -188,17 +182,14 @@ def attach_resource(
         if course.tutor_id != current_user.user_id:
             raise HTTPException(status_code=403, detail="You can only attach resources to your own courses")
         
-        # Verify resource exists in library
         resource = hcmut_api.get_library_resource_by_id(resource_id)
         if not resource:
             raise HTTPException(status_code=404, detail="Library resource not found")
         
-        # Check if resource is already attached
         existing = course_resource_service.get_by_course_and_resource(course_id, resource_id)
         if existing:
             raise HTTPException(status_code=400, detail="Resource is already attached to this course")
         
-        # Attach resource to course
         course_resource = course_resource_service.create(
             course_id=course_id,
             resource_id=resource_id
@@ -243,15 +234,13 @@ def detach_resource(
         course_service = CourseService(mututor_session)
         course_resource_service = CourseResourceService(mututor_session)
         
-        # Verify course exists and belongs to tutor
         course = course_service.get_by_id(course_id)
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
         
         if course.tutor_id != current_user.user_id:
             raise HTTPException(status_code=403, detail="You can only detach resources from your own courses")
-        
-        # Detach resource
+
         success = course_resource_service.delete_by_course_and_resource(course_id, resource_id)
         if not success:
             raise HTTPException(status_code=404, detail="Resource attachment not found")

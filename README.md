@@ -1,6 +1,6 @@
 # SWE-251
 #Start backend
-```
+```sh
 cd backend
 python -m app.main
 ```
