@@ -37,10 +37,8 @@ def get_resource(
             except ValueError:
                 raise HTTPException(status_code=400, detail=f"Invalid resource type: {type}")
         elif q:
-            # Search by keyword only
             resources = hcmut_api.search_library_resources(q)
         else:
-            # Get all resources
             resources = hcmut_api.get_all_library_resources()
         
         resources_data = []

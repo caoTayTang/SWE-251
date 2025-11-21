@@ -447,7 +447,7 @@ class HCMUT_API:
     def check_capacity(self,room_id, capacity:int) -> bool:
         room = self.get_room_by_id(room_id)
         if not room: return False
-        if room.capacity < capacity: return False
+        if room.capacity < int(capacity): return False
         return True
 
     def validate_course_resources(self, resource_ids: List[int]) -> Dict:
