@@ -31,6 +31,6 @@ class MuSession(Base):
     __tablename__ = "sessions"
 
     session_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(Integer, unique=True)
+    user_id = Column(String, unique=True)
     role = Column(Enum(UserRole), nullable=False, index=True)
     expires_at = Column(DateTime, default=lambda: datetime.now(timezone.utc) + timedelta(hours=1))

@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session, sessionmaker
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime, date, time, timezone
 from ..models.course import Course, CourseStatus, Level, CourseSession, Subject, CourseFormat, CourseResource
-
+from sqlalchemy import and_, or_
 
 class CourseService:
     def __init__(self, db_session: sessionmaker):
@@ -30,7 +30,7 @@ class CourseService:
 
     def get_by_id(self, course_id: int) -> Optional[Course]:
         db = self.db_session()
-        result = db.query(Course).filter(Course.id == course_id).first()
+        result = db.query(Course).filter(Course.id == int(course_id)).first()
         db.close()
         return result
 
@@ -127,6 +127,14 @@ class CourseSessionService:
         db.close()
         return session
 
+    def get_by_course_session(self, course_id, session_id) -> Optional[CourseSession]:
+        db = self.db_session()
+        result = db.query(CourseSession).filter(
+            CourseSession.course_id == course_id,
+            CourseSession.session_number == session_id).first()
+        db.close()
+        return result
+
     def get_by_id(self, session_id: int) -> Optional[CourseSession]:
         db = self.db_session()
         result = db.query(CourseSession).filter(CourseSession.id == session_id).first()
@@ -205,6 +213,66 @@ class CourseSessionService:
         db.commit()
         db.close()
         return count
+    
+    def check_time_confict(
+        self, 
+        tutor_id: str, 
+        sessions: Dict,
+        exclude_session_id: Optional[int] = None
+    ) -> Dict:
+        errors = []
+        
+        with self.db_session() as session:
+            session_date = datetime.strptime(sessions.get('session_date'), '%Y-%m-%d').date()
+            start_time = datetime.strptime(sessions.get('start_time'), '%H:%M').time()
+            end_time = datetime.strptime(sessions.get('end_time'), '%H:%M').time()
+            session_format = sessions.get('format')
+
+            if isinstance(session_format, str):
+                session_format = CourseFormat(session_format.lower())
+
+            tutor_courses_query = session.query(Course).filter(
+                Course.tutor_id == tutor_id
+            )
+            
+            tutor_courses = tutor_courses_query.all()
+            
+            for course in tutor_courses:
+                conflicting_sessions = session.query(CourseSession).filter(
+                    and_(
+                        CourseSession.course_id == course.id,
+                        CourseSession.session_date == session_date,
+                        or_(
+                            and_(
+                                CourseSession.start_time <= start_time,
+                                CourseSession.end_time > start_time
+                            ),
+                            and_(
+                                CourseSession.start_time < end_time,
+                                CourseSession.end_time >= end_time
+                            ),
+                            and_(
+                                CourseSession.start_time >= start_time,
+                                CourseSession.end_time <= end_time
+                            )
+                        )
+                    )
+                )
+                
+                if exclude_session_id:
+                    conflicting_sessions = conflicting_sessions.filter(CourseSession.id != exclude_session_id)
+                conflicting_sessions = conflicting_sessions.first()
+
+                if conflicting_sessions:
+                    errors.append(
+                        f"Session {session_date} ({start_time}-{end_time}): "
+                        f"Tutor has a conflicting session in course '{course.title}' "
+                        f"({conflicting_sessions.start_time}-{conflicting_sessions.end_time})"
+                    )
+        return {
+        "valid": len(errors) == 0,
+        "errors": errors
+    }
     
 class CourseResourceService:
     def __init__(self, db_session: sessionmaker):

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy import and_, or_
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime, date, time, timezone, timedelta
 from .HCMUT_DATACORE import User, Student, Staff, HcmutUserRole, AcademicStatus
 from .HCMUT_Cooridator import RoomSchedule, Room, RoomStatus, RoomType
@@ -11,6 +11,8 @@ from .HCMUT_SSO import SSOUser
 class HCMUT_API:
     def __init__(self, db_session: sessionmaker):
         self.db_session = db_session
+
+    #def check_course_conflict(self, tutor_id:str, session_list: List, resource_list: List)
 
     # ==================== SSO APIs ====================
     
@@ -248,9 +250,23 @@ class HCMUT_API:
                 
             return query.all()
     
+    def get_schedule_session(self, room_id, session_date, start_time, end_time)->Optional[RoomSchedule]:     
+        if isinstance(session_date,str):
+            session_date = datetime.strptime(session_date, '%Y-%m-%d').date()
+        if isinstance(start_time,str):
+            start_time = datetime.strptime(start_time, '%H:%M').time()
+        if isinstance(end_time,str):
+            end_time = datetime.strptime(end_time, '%H:%M').time() 
+        with self.db_session() as session:
+            return session.query(RoomSchedule).filter(
+                RoomSchedule.room_id == room_id,
+                RoomSchedule.start_time == start_time,
+                RoomSchedule.end_time == end_time 
+        ).first()
+
     def get_free_rooms_by_datetime(self, target_date: date, 
                                     start_time: time, 
-                                    end_time: time) -> List[Room]:
+                                    end_time: time, exclude_room = None) -> List[Room]:
         """
         Get all rooms that are FREE for a specific date and time range.
         
@@ -262,6 +278,9 @@ class HCMUT_API:
         Returns:
             List of available Room objects
         """
+        if exclude_room:
+            exclude_room = self.get_room_by_name(exclude_room)
+
         with self.db_session() as session:
             # Find all rooms that have overlapping booked schedules
             booked_rooms = session.query(RoomSchedule.room_id).filter(
@@ -276,10 +295,12 @@ class HCMUT_API:
                     )
                 )
             ).distinct().all()
-            
+   
+
             booked_room_ids = [room_id for (room_id,) in booked_rooms]
-            
-            # Get all rooms that are not in the booked list
+            if exclude_room.id in booked_room_ids:
+                booked_room_ids.remove(exclude_room.id)
+
             free_rooms = session.query(Room).filter(
                 ~Room.id.in_(booked_room_ids)
             ).all()
@@ -287,7 +308,7 @@ class HCMUT_API:
             return free_rooms
     
     def can_book_room(self, room_id: int, target_date: date,
-                      start_time: time, end_time: time) -> bool:
+                      start_time: time, end_time: time, exclude_session: Dict = None) -> bool:
         """
         Check if a specific room can be booked for the given date and time.
         
@@ -301,24 +322,29 @@ class HCMUT_API:
             bool: True if room is available, False otherwise
         """
         with self.db_session() as session:
-            # Check for any overlapping booked schedules
             overlapping = session.query(RoomSchedule).filter(
                 and_(
                     RoomSchedule.room_id == room_id,
                     RoomSchedule.date == target_date,
                     RoomSchedule.status == RoomStatus.BOOKED,
                     or_(
-                        # Overlapping conditions
                         and_(RoomSchedule.start_time <= start_time, RoomSchedule.end_time > start_time),
                         and_(RoomSchedule.start_time < end_time, RoomSchedule.end_time >= end_time),
                         and_(RoomSchedule.start_time >= start_time, RoomSchedule.end_time <= end_time)
                     )
                 )
-            ).first()
+            )
+            if exclude_session:
+                old_schedule = self.get_schedule_session(room_id, exclude_session.get("session_date"), exclude_session.get("start_time"), exclude_session.get("end_time"))
+                if not old_schedule:
+                    return False
+                overlapping = overlapping.filter(
+                    RoomSchedule.id != old_schedule.id
+                )
             
-            return overlapping is None
+            return overlapping.first() is None
     
-    def book_room(self, room_id: int, user_id: str, target_date: date,
+    def book_room(self, room_name: str, user_id: str, target_date: date,
                   start_time: time, end_time: time, 
                   note: Optional[str] = None) -> Optional[RoomSchedule]:
         """
@@ -337,12 +363,11 @@ class HCMUT_API:
         """
         with self.db_session() as session:
             # First check if the room can be booked
-            if not self.can_book_room(room_id, target_date, start_time, end_time):
-                return None
-            
-            # Create the booking
+            room = self.get_room_by_name(room_name)
+            if not room: return None
+ 
             new_schedule = RoomSchedule(
-                room_id=room_id,
+                room_id=room.id,
                 user_id=user_id,
                 date=target_date,
                 start_time=start_time,
@@ -410,10 +435,8 @@ class HCMUT_API:
         """
         with self.db_session() as session:
             schedule = session.query(RoomSchedule).filter(
-                and_(
                     RoomSchedule.id == schedule_id,
                     RoomSchedule.user_id == user_id
-                )
             ).first()
             
             if schedule:
@@ -421,3 +444,36 @@ class HCMUT_API:
                 session.commit()
                 return True
             return False
+    
+    def validate_course_resources(self, resource_ids: List[int]) -> Dict:
+        """
+        Validate that all resource IDs exist in the library database.
+        
+        Args:
+            resource_ids: List of resource IDs to validate
+            
+        Returns:
+            Dict with:
+            - valid (bool): Whether all resources exist
+            - errors (List[str]): List of error messages for invalid resources
+            - valid_resources (List[int]): List of valid resource IDs
+        """
+        errors = []
+        valid_resources = []
+        
+        with self.db_session() as session:
+            for resource_id in resource_ids:
+                resource = session.query(LibraryResource).filter(
+                    LibraryResource.id == resource_id
+                ).first()
+                
+                if not resource:
+                    errors.append(f"Resource ID {resource_id} does not exist in library database")
+                else:
+                    valid_resources.append(resource_id)
+        
+        return {
+            "valid": len(errors) == 0,
+            "errors": errors,
+            "valid_resources": valid_resources
+        }

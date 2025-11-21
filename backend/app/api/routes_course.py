@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
 import uuid
 from .auth import get_current_user_from_session
-
+from ..hcmut_database import *
 router = APIRouter()
 
 course_service = CourseService(mututor_session)
@@ -22,7 +22,6 @@ def get_courses(
    current_user: MuSession = Depends(get_current_user_from_session)
 ):
     """Get all courses for the current tutor"""
-    #current_user = get_current_user_from_session(session_id, UserRole('tutor'))
     if current_user.role != UserRole('tutor'):
         raise HTTPException(status_code=403, detail="Not authorized, requires TUTOR role")
     
@@ -30,6 +29,27 @@ def get_courses(
 
     courses_data = []
     for course in courses:
+        sessions = course_session_service.get_by_course(course.id)
+        sessions_data = []
+        for session in sessions:
+            sessions_data.append({
+                "id": session.id,
+                "session_number": session.session_number,
+                "session_date": session.session_date.isoformat(),
+                "start_time": str(session.start_time),
+                "end_time": str(session.end_time),
+                "format": session.format.value,
+                "location": session.location
+            })
+
+        course_resources = course_resource_service.get_by_course(course.id)
+        resources_data = []
+        for resource_link in course_resources:
+            resources_data.append({
+                "id": resource_link.id,
+                "resource_id": resource_link.resource_id
+            })
+        
         courses_data.append({
             "id": course.id,
             "title": course.title,
@@ -41,7 +61,9 @@ def get_courses(
             "max_students": course.max_students,
             "status": course.status.value,
             "created_at": course.created_at.isoformat(),
-            "updated_at": course.updated_at.isoformat()
+            "updated_at": course.updated_at.isoformat(),
+            "sessions": sessions_data,
+            "resources": resources_data
         })
     
     return {
@@ -66,6 +88,44 @@ def create_course(
     if not course_data:
         raise HTTPException(status_code=400, detail="Missing courseData")
 
+    if course_sessions:
+        for session_data in course_sessions:
+            schedule_result = course_session_service.check_time_confict(tutor_id=current_user.user_id, sessions=session_data)
+            if not schedule_result['valid']:
+                raise HTTPException(
+                    status_code=400,
+                    detail={"message": "Schedule validation failed","errors": schedule_result['errors']} )
+            
+            if session_data.get('format', 'offline') == 'online': continue
+            session_date = datetime.strptime(session_data.get('session_date'), '%Y-%m-%d').date()
+            start_time = datetime.strptime(session_data.get('start_time'), '%H:%M').time()
+            end_time = datetime.strptime(session_data.get('end_time'), '%H:%M').time()
+            room_name = session_data.get('location')
+            room = hcmut_api.get_room_by_name(room_name)
+            if not room: 
+                raise HTTPException(
+                    status_code=400,
+                    detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room not found for room {room_name}"})
+            
+            room_result = hcmut_api.can_book_room(room_id=room.id,tutor_id=current_user.user_id,sessions=session_data)
+            
+            if not room_result:
+                other_room = [room.name for room in hcmut_api.get_free_rooms_by_datetime(session_date,start_time,end_time)]
+                raise HTTPException(
+                    status_code=400,
+                    detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room validation failed, other free room: {other_room}"} )
+
+    if course_resources:
+        resource_validation = hcmut_api.validate_course_resources(course_resources)      
+        if not resource_validation['valid']:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "message": "Invalid resource IDs",
+                    "errors": resource_validation['errors']
+                }
+            )
+
     try:
         course = course_service.create(
             title=course_data.get('title'),
@@ -75,7 +135,7 @@ def create_course(
             description=course_data.get('description'),
             cover_image_url=course_data.get('cover_image_url'),
             level=Level(course_data.get('level', 'beginner')),
-            status=CourseStatus(course_data.get('status', 'pending'))
+            status=CourseStatus(course_data.get('status', 'open'))
         )
 
         created_sessions = []
@@ -84,21 +144,28 @@ def create_course(
                 session_date = datetime.strptime(session_data.get('session_date'), '%Y-%m-%d').date()
                 start_time = datetime.strptime(session_data.get('start_time'), '%H:%M').time()
                 end_time = datetime.strptime(session_data.get('end_time'), '%H:%M').time()
-                
+                format = CourseFormat(session_data.get('format', 'offline'))
+                location= session_data.get('location')
                 session = course_session_service.create(
                     course_id=course.id,
                     session_number=session_data.get('session_number'),
                     session_date=session_date,
                     start_time=start_time,
                     end_time=end_time,
-                    format=CourseFormat(session_data.get('format', 'offline')),
-                    location=session_data.get('location')
+                    format=format,
+                    location=location
                 )
+                if format == CourseFormat.OFFLINE:
+                    ret = hcmut_api.book_room(location, current_user.user_id, session_date, start_time, end_time, f"Book room for course {course_data.get('title')}")
+                    if not ret:
+                        raise HTTPException(status_code=400,detail={ "message": "Invalid resource IDs","errors": f"Failed to book room: {location}"})
                 created_sessions.append({
                     "id": session.id,
                     "session_number": session.session_number,
                     "date": session.session_date.isoformat(),
-                    "time": f"{session.start_time} - {session.end_time}"
+                    "time": f"{session.start_time} - {session.end_time}",
+                    "format": f"{format}"
+
                 })
 
         created_resources = []
@@ -143,13 +210,13 @@ def modify_course(
     
     course_id = data.get('id')
     updated_data = data.get('updatedData')
-    course_sessions = data.get('courseSessions', [])  # List of session data to update/create
-    course_resources = data.get('courseResources', [])  # List of resource IDs to link
+    updated_session_data = data.get('updatedSessionData',None)
+    course_session_id = data.get('courseSessionId',None) 
+    course_resources = data.get('courseResources', []) 
     
     if not course_id or not updated_data:
         raise HTTPException(status_code=400, detail="Missing course id or updatedData")
     
-
     course = course_service.get_by_id(course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
@@ -157,6 +224,44 @@ def modify_course(
     if course.tutor_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="You can only modify your own courses")
     
+    old_session = None
+    if course_session_id:
+        old_session = course_session_service.get_by_course_session(course_id, course_session_id)
+        if not old_session:
+            raise HTTPException(status_code=403, detail="Course Session not found")
+
+        schedule_result = course_session_service.check_time_confict(current_user.user_id, updated_session_data, old_session.id)
+        if not schedule_result['valid']:
+            raise HTTPException(
+                status_code=400,
+                detail={"message": "Schedule validation failed","errors": schedule_result['errors']} )
+        
+        if updated_session_data.get('format') == 'offline':
+            session_date = datetime.strptime(updated_session_data.get('session_date'), '%Y-%m-%d').date()
+            start_time = datetime.strptime(updated_session_data.get('start_time'), '%H:%M').time()
+            end_time = datetime.strptime(updated_session_data.get('end_time'), '%H:%M').time()
+            room_name = updated_session_data.get('location')
+            room = hcmut_api.get_room_by_name(room_name)
+            if not room: 
+                raise HTTPException(
+                    status_code=400,
+                    detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room not found for room {room_name}"})
+            
+            room_result = hcmut_api.can_book_room(room_id=room.id,tutor_id=current_user.user_id,sessions=updated_session_data,exclude_session=old_session)
+            
+            if not room_result:
+                old_room = None if old_session.format == CourseFormat.ONLINE else old_session.location
+                other_room = [room.name for room in hcmut_api.get_free_rooms_by_datetime(session_date,start_time,end_time,old_room)]
+                raise HTTPException(
+                    status_code=400,
+                    detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room validation failed, other free room: {other_room}"} )
+        
+    if course_resources:
+        resource_validation = hcmut_api.validate_course_resources(course_resources) 
+        if not resource_validation['valid']:
+            raise HTTPException(
+                status_code=400,
+                detail={"message": "Invalid resource IDs","errors": resource_validation['errors']})
 
     try:
         updated_course = course_service.update(
@@ -172,32 +277,34 @@ def modify_course(
         if not updated_course:
             raise HTTPException(status_code=500, detail="Failed to update course")
 
-        updated_sessions = []
-        if course_sessions:         
-            course_session_service.delete_all_by_course(course_id)
-            for session_data in course_sessions:
-                try:
-                    session_date = datetime.strptime(session_data.get('session_date'), '%Y-%m-%d').date()
-                    start_time = datetime.strptime(session_data.get('start_time'), '%H:%M').time()
-                    end_time = datetime.strptime(session_data.get('end_time'), '%H:%M').time()
+        updated_session = None
+        if course_session_id:         
+            try:
+                session_date = datetime.strptime(updated_session_data.get('session_date'), '%Y-%m-%d').date()
+                start_time = datetime.strptime(updated_session_data.get('start_time'), '%H:%M').time()
+                end_time = datetime.strptime(updated_session_data.get('end_time'), '%H:%M').time()
+                format=CourseFormat(updated_session_data.get('format', 'online')),
+                location=updated_session_data.get('location')
+                updated_session = course_session_service.update(
+                    session_id=old_session.id,
+                    session_number=updated_session_data.get('session_number'),
+                    session_date=session_date,
+                    start_time=start_time,
+                    end_time=end_time,
+                    format=format,
+                    location=location
+                )
+                if old_session.format == CourseFormat.OFFLINE:
+                    old_room = hcmut_api.get_room_by_name(old_session.location)
+                    old_schedule = hcmut_api.get_schedule_session(old_room.id, old_session.session_date, old_session.start_time, old_session.end_time)
+                    hcmut_api.cancel_booking(old_schedule.id, current_user.user_id)
                     
-                    session = course_session_service.create(
-                        course_id=course.id,
-                        session_number=session_data.get('session_number'),
-                        session_date=session_date,
-                        start_time=start_time,
-                        end_time=end_time,
-                        format=CourseFormat(session_data.get('format', 'offline')),
-                        location=session_data.get('location')
-                    )
-                    updated_sessions.append({
-                        "id": session.id,
-                        "session_number": session.session_number,
-                        "date": session.session_date.isoformat(),
-                        "time": f"{session.start_time} - {session.end_time}"
-                    })
-                except Exception as e:
-                    print(f"Warning: Failed to create session: {str(e)}")
+                if format == CourseFormat.OFFLINE:
+                    ret = hcmut_api.book_room(location, current_user.user_id, session_date, start_time, end_time, f"Book room for course {updated_data.get('title')}")
+                    if not ret:
+                        raise HTTPException(status_code=400,detail={ "message": "Invalid resource IDs","errors": f"Failed to book room: {location}"})
+            except Exception as e:
+                print(f"Warning: Failed to create session: {str(e)}")
 
         updated_resources = []
         if course_resources:  
@@ -239,8 +346,8 @@ def modify_course(
                 "status": updated_course.status.value,
                 "updated_at": updated_course.updated_at.isoformat()
             },
-            "sessions_updated": len(updated_sessions),
-            "sessions": updated_sessions,
+            "sessions_updated": 1,
+            "sessions": updated_session,
             "resources_updated": len(updated_resources),
             "resources": updated_resources
         }
@@ -268,6 +375,13 @@ def delete_course(
     if course.tutor_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="You can only delete your own courses")
     
+    try:
+        success = course_service.delete(course_id)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to delete course")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete course: {str(e)}")
+    
     enrollments = enroll_service.get_by_course(course_id)
     course_title = course.title
 
@@ -283,18 +397,9 @@ def delete_course(
             )
             notification_count += 1
     
-    try:
-        success = course_service.delete(course_id)
-        if success:
-            return {
-                "status": "success",
-                "message": "Course deleted successfully",
-                "notifications_sent": notification_count
-            }
-        else:
-            raise HTTPException(status_code=500, detail="Failed to delete course")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete course: {str(e)}")
+    return {"status": "success",
+            "message": "Course deleted successfully",
+            "notifications_sent": notification_count}
 
 # ==================== TUTEE ROUTES ====================
 
@@ -318,7 +423,6 @@ def get_courses_tutee(
     else:
         courses = course_service.get_by_status(CourseStatus.OPEN)
     
-
     courses_data = []
     for course in courses:
         enrollment = enroll_service.get_by_tutee_and_course(current_user.user_id, course.id)
@@ -326,6 +430,27 @@ def get_courses_tutee(
         
         enrollments = enroll_service.get_by_course(course.id)
         enrolled_count = sum(1 for e in enrollments if e.status == EnrollmentStatus.ENROLLED)
+        
+        sessions = course_session_service.get_by_course(course.id)
+        sessions_data = []
+        for session in sessions:
+            sessions_data.append({
+                "id": session.id,
+                "session_number": session.session_number,
+                "session_date": session.session_date.isoformat(),
+                "start_time": str(session.start_time),
+                "end_time": str(session.end_time),
+                "format": session.format.value,
+                "location": session.location
+            })
+        
+        course_resources = course_resource_service.get_by_course(course.id)
+        resources_data = []
+        for resource_link in course_resources:
+            resources_data.append({
+                "id": resource_link.id,
+                "resource_id": resource_link.resource_id
+            })
         
         courses_data.append({
             "id": course.id,
@@ -340,12 +465,14 @@ def get_courses_tutee(
             "available_slots": course.max_students - enrolled_count,
             "status": course.status.value,
             "is_enrolled": is_enrolled,
-            "created_at": course.created_at.isoformat()
+            "created_at": course.created_at.isoformat(),
+            "sessions": sessions_data,
+            "resources": resources_data
         })
     
     return {
         "status": "success",
-        "tutee": current_user.username,
+        "tutee": current_user.user_id,
         "courses": courses_data
     }
 
@@ -386,6 +513,16 @@ def enroll_course(
     enrolled_count = sum(1 for e in enrollments if e.status == EnrollmentStatus.ENROLLED)
     if enrolled_count >= course.max_students:
         raise HTTPException(status_code=400, detail="Course is full")
+
+    conflict_check = enroll_service.check_time_conflict(tutee_id, course_id)
+    if not conflict_check['valid']:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Enrollment time conflict detected",
+                "errors": conflict_check['errors']
+            }
+        )
 
     try:
         enrollment = enroll_service.create(

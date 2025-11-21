@@ -3,15 +3,15 @@ from sqlalchemy.orm import relationship, declarative_base, Session
 from datetime import datetime, time, date, timedelta, timezone
 import enum
 from .base import Base
-# --- Enums for Course Status and Format (Kept from original) ---
+
 
 class CourseStatus(str, enum.Enum):
-    PENDING = "pending"   # Course created, not yet open for enrollmenat
-    OPEN = "open"       # Open for enrollment (mock: "active")
-    ONGOING = "ongoing"   # Course is in progress
-    COMPLETED = "completed" # Course has finished
-    CANCELLED = "cancelled" # Course was cancelled
-    INACTIVE = "inactive" # Added from mock data
+    PENDING = "pending"   
+    OPEN = "open"      
+    ONGOING = "ongoing"  
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    INACTIVE = "inactive" 
 
 class CourseFormat(str, enum.Enum):
     ONLINE = "online"
@@ -70,7 +70,7 @@ class Course(Base):
     
     sessions = relationship("CourseSession", back_populates="course", cascade="all, delete-orphan")
     
-    meeting_records = relationship("MeetingRecord", back_populates="course")
+    meeting_records = relationship("MeetingRecord", back_populates="course", cascade="all, delete-orphan")
 
     resource = relationship("CourseResource", back_populates="course", cascade="all, delete-orphan")
 

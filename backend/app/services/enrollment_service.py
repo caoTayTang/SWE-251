@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from typing import List, Optional
 from datetime import datetime, timezone
 from ..models.enrollment import Enrollment, EnrollmentStatus
-
+from ..models.course import Course, CourseSession
+from sqlalchemy import and_, or_
 
 class EnrollmentService:
     def __init__(self, db_session: sessionmaker):
@@ -91,3 +92,66 @@ class EnrollmentService:
         db.commit()
         db.close()
         return True
+    
+    def check_time_conflict(self, tutee_id: str, course_id: int) -> dict:
+        """
+        Check if enrolling in a course would create time conflicts with 
+        the tutee's existing enrolled courses.
+        
+        Returns:
+            dict: {
+                'valid': bool,
+                'errors': List[str]
+            }
+        """
+        
+        errors = []
+        
+        db = self.db_session()
+        
+        try:
+            enrolled_courses = db.query(Enrollment).filter(
+                Enrollment.tutee_id == tutee_id,
+                Enrollment.status == EnrollmentStatus.ENROLLED
+            ).all()
+
+            new_course_sessions = db.query(CourseSession).filter(
+                CourseSession.course_id == course_id
+            ).all()
+            
+            for new_session in new_course_sessions:
+                for enrollment in enrolled_courses:
+                    existing_sessions = db.query(CourseSession).filter(
+                        CourseSession.course_id == enrollment.course_id
+                    ).all()
+                    
+                    for existing_session in existing_sessions:
+                        if new_session.session_date == existing_session.session_date:
+                            if (
+                                (new_session.start_time >= existing_session.start_time and 
+                                new_session.start_time < existing_session.end_time) or
+
+                                (new_session.end_time > existing_session.start_time and 
+                                new_session.end_time <= existing_session.end_time) or
+
+                                (new_session.start_time <= existing_session.start_time and 
+                                new_session.end_time >= existing_session.end_time)
+                            ):
+                                enrolled_course = db.query(Course).filter(
+                                    Course.id == enrollment.course_id
+                                ).first()
+                                
+                                errors.append(
+                                    f"Session on {new_session.session_date} "
+                                    f"({new_session.start_time}-{new_session.end_time}) "
+                                    f"conflicts with enrolled course '{enrolled_course.title}' "
+                                    f"session ({existing_session.start_time}-{existing_session.end_time})"
+                                )
+            
+            return {
+                'valid': len(errors) == 0,
+                'errors': errors
+            }
+        
+        finally:
+            db.close()

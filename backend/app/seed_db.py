@@ -377,8 +377,8 @@ if __name__ == "__main__":
     
     print("Seeding data...")
 
-    #seed_session(engine,db)
-    a= UserRole("tutor")
+    seed_session(engine,db)
+    #a= UserRole("tutor")
 
 
 

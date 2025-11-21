@@ -28,6 +28,7 @@ def login(
     username = data.get("username")
     password = data.get("password")
     role = data.get("role")
+    
     logger.info(role.__len__())
     if not hcmut_api.check_password(username, password) :
         raise HTTPException(

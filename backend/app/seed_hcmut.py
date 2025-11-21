@@ -289,18 +289,18 @@ def seed_room(engine, db:Session):
                 },
                 # Lịch 2 (Approved - Cùng phòng, khác ngày/giờ)
                 {
-                    "room_id": phong_h6_301.id,
+                    "room_id": phong_h6_301.id, "user_id": nguoi_dat_gv.id,
                     "date": date(2025, 11, 20), # Thứ 5
                     "start_time": time(9, 30), "end_time": time(11, 30),
-                    "status": RoomStatus.FREE,
+                    "status": RoomStatus.BOOKED,
                     
                 },
                 # Lịch 3 (Pending)
                 {
-                    "room_id": phong_c6_510.id,
+                    "room_id": phong_c6_510.id, "user_id": nguoi_dat_gv.id,
                     "date": date(2025, 11, 19), # Thứ 4
                     "start_time": time(13, 30), "end_time": time(16, 30),
-                    "status": RoomStatus.FREE,
+                    "status": RoomStatus.BOOKED,
                    
                 },
                 # Lịch 4 (Cancelled)
@@ -361,10 +361,11 @@ def seed_room(engine, db:Session):
         print("--- Đã đóng phiên CSDL (Coordinator) ---")
 
 if __name__ == "__main__":
-    DATABASE_URL = "sqlite:///./hcmut_database/hcmut.db"
+    DATABASE_URL = "sqlite:///./app/hcmut_database/hcmut.db"
     engine = create_engine(DATABASE_URL, echo=False)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
-    
+
+    seed_room(engine,db)
     print("Seeding data...")
 
