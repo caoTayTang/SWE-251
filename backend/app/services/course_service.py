@@ -153,6 +153,12 @@ class CourseSessionService:
         db.close()
         return result
 
+    def get_by_course_snum(self, course_id:int, session_number: int)-> Optional[CourseSession]:
+        db = self.db_session()
+        result = db.query(CourseSession).filter(CourseSession.course_id == course_id, CourseSession.session_number == session_number).first()
+        db.close()
+        return result
+
     def get_by_date(self, session_date: date) -> List[CourseSession]:
         db = self.db_session()
         result = db.query(CourseSession).filter(CourseSession.session_date == session_date).all()

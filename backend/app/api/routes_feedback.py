@@ -89,7 +89,7 @@ def create_feedback(
     
     try:
         feedback = feedback_service.create(
-            user_id=current_user.user_id,
+            user_id=current_user.user_id if not is_anonymous else "xxxxxxx",
             topic=topic,
             content=content,
             is_anonymous=is_anonymous
@@ -140,12 +140,9 @@ def create_session_evaluation(
         if not enrollment or enrollment.status != EnrollmentStatus.ENROLLED:
             raise HTTPException(status_code=403, detail="You must be enrolled in this course to evaluate sessions")   
 
-        session = course_session_service.get_by_id(session_id)
+        session = course_session_service.get_by_course_snum(course_id, session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
-        
-        if session.course_id != course_id:
-            raise HTTPException(status_code=400, detail="Session does not belong to this course")     
 
         existing_evaluations = session_evaluation_service.get_by_enrollment(enrollment.id)
         for eval in existing_evaluations:
@@ -153,7 +150,7 @@ def create_session_evaluation(
                 raise HTTPException(status_code=400, detail="You have already evaluated this session")
         
         evaluation = session_evaluation_service.create(
-            session_id=session_id,
+            session_id=session.id,
             enrollment_id=enrollment.id,
             rating=rating,
             comment=comment,
@@ -182,7 +179,7 @@ def get_course_evaluations(
 ):
     """Get all evaluations for a course (tutor only for their courses)"""
     if current_user.role != UserRole('tutor') and current_user.role != UserRole('admin'):
-        raise HTTPException(status_code=403, detail="Not authorized")
+        raise HTTPException(status_code=403, detail="Not authorized, requires TUTOR or ADMIN role")
     
     try:
         course = course_service.get_by_id(course_id)

@@ -72,8 +72,7 @@ class EnrollmentService:
         
         if status is not None:
             enrollment.status = status
-        if drop_reason is not None:
-            enrollment.drop_reason = drop_reason
+        enrollment.drop_reason = drop_reason
         
         enrollment.updated_at = datetime.now(timezone.utc)
         db.commit()

@@ -411,7 +411,7 @@ const API_ROUTES = {
       requiresRole: 'tutee',
       input: {
         evaluationData: {
-          sessionId: 'number',
+          sessionId: 'number', //sesion number for that session
           courseId: 'number',
           rating: 'number', // 1-5
           comment: 'string', // optional

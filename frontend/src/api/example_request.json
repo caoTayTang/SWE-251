@@ -1,3 +1,7 @@
+{ //login
+  "username":"a.nguyen21","password":"toi_yeu_mu","role":"tutee"
+}
+
 {
   "courseData": { //create_course
           "title": "Học với Abe",
@@ -44,4 +48,39 @@
   },
   "courseSessionId": 1,
   "courseResources": [1, 2, 3]
+}
+
+{// enroll course
+   "courseId": 2,
+   "tuteeId": "2210001" // or null
+}
+
+{//delete enrollment
+   "courseId": 2,
+   "tuteeId": "2210001",
+   "reason": "ff"
+}
+
+{//post feedback
+  "feedbackData": {
+     "topic": "Góp ý",
+     "content": "Web xịn quá, xứng đáng 10đ",
+     "isAnonymous": true
+  }
+}
+
+{//post session eval
+   "evaluationData": {
+      "sessionId": 1,
+      "courseId": 2,
+      "rating": 5,
+      "comment": "nothing to say...",
+      "isAnonymous": true
+  }
+}
+
+{//post report
+  "reportData": {
+  "type": "enrollment_summary"
+ }
 }

@@ -424,7 +424,8 @@ def get_courses_tutee(
         courses = course_service.get_by_level(Level(level))
     else:
         courses = course_service.get_by_status(CourseStatus.OPEN)
-    
+    #exclude own courses
+    courses = [course for course in courses if course.tutor_id != current_user.user_id]
     courses_data = []
     for course in courses:
         enrollment = enroll_service.get_by_tutee_and_course(current_user.user_id, course.id)
@@ -527,17 +528,20 @@ def enroll_course(
         )
 
     try:
-        enrollment = enroll_service.create(
-            tutee_id=tutee_id,
-            course_id=course_id,
-            status=EnrollmentStatus.ENROLLED
-        )
+        if existing_enrollment:
+            enrollment = enroll_service.update(existing_enrollment.id, EnrollmentStatus.ENROLLED)
+        else:
+            enrollment = enroll_service.create(
+                tutee_id=tutee_id,
+                course_id=course_id,
+                status=EnrollmentStatus.ENROLLED
+            )
 
         notification_service.create(
             user_id=course.tutor_id,
             type=NotificationType.ENROLLMENT_SUCCESS,
             title=f"New Enrollment: {course.title}",
-            content=f"Student {current_user.username} has enrolled in your course '{course.title}'.",
+            content=f"Student {current_user.user_id} has enrolled in your course '{course.title}'.",
             related_id=course_id
         )
    
@@ -604,7 +608,7 @@ def unregister_course(
             user_id=course.tutor_id,
             type=NotificationType.ENROLLMENT_CANCELLED,
             title=f"Student Dropped: {course.title}",
-            content=f"Student {current_user.username} has dropped from your course '{course.title}'. Reason: {drop_reason}",
+            content=f"Student {current_user.user_id} has dropped from your course '{course.title}'. Reason: {drop_reason}",
             related_id=course_id
         )
         
@@ -660,6 +664,6 @@ def get_my_enrollments(
     
     return {
         "status": "success",
-        "tutee": current_user.username,
+        "tutee": current_user.user_id,
         "enrollments": enrollments_data
     }

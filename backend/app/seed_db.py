@@ -372,6 +372,9 @@ if __name__ == "__main__":
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
     
+    # seed_enrollment(engine,db)
+    # seed_feeback_eval(engine,db)
+    # seed_notification(engine,db)
     print("Seeding data...")
 
     seed_session(engine,db)

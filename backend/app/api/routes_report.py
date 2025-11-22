@@ -7,13 +7,12 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
 from .auth import get_current_user_from_session
-
+from ..hcmut_database import*
 router = APIRouter()
 
 course_service = CourseService(mututor_session)
 enrollment_service = EnrollmentService(mututor_session)
 course_session_service = CourseSessionService(mututor_session)
-user_service = UserService(mututor_session)
 session_evaluation_service = SessionEvaluationService(mututor_session)
 
 @router.get("/tutor/tracking/classes")
@@ -138,18 +137,18 @@ def track_all_tutees(
         raise HTTPException(status_code=403, detail="Not authorized, requires ADMIN role")
     
     try:
-        all_tutees = user_service.get_by_role(UserRole.TUTEE)
-        
+        all_enroll = enrollment_service.get_all()
+        all_tutees = list(set([e.tutee_id for e in all_enroll]))
         tutees_data = []
         for tutee in all_tutees:
-            enrollments = enrollment_service.get_by_tutee(tutee.id)
+            enrollments = enrollment_service.get_by_tutee(tutee)
             active_enrollments = [e for e in enrollments if e.status == EnrollmentStatus.ENROLLED]
             completed_enrollments = [e for e in enrollments if e.status == EnrollmentStatus.COMPLETED]
             dropped_enrollments = [e for e in enrollments if e.status == EnrollmentStatus.DROPPED]
-            
+            user = hcmut_api.get_student_by_id(tutee)
             tutees_data.append({
-                "id": tutee.id,
-                "username": tutee.username,
+                "id": tutee,
+                "name": user.full_name,
                 "total_enrollments": len(enrollments),
                 "active_courses": len(active_enrollments),
                 "completed_courses": len(completed_enrollments),
@@ -173,11 +172,7 @@ def track_specific_tutee(
     if current_user.role != UserRole('admin'):
         raise HTTPException(status_code=403, detail="Not authorized, requires ADMIN role")
     
-    try:
-        tutee = user_service.get_by_id(id)
-        if not tutee or tutee.role != UserRole.TUTEE:
-            raise HTTPException(status_code=404, detail="Tutee not found")
-        
+    try:        
         enrollments = enrollment_service.get_by_tutee(id)
         
         enrollments_data = []
@@ -196,13 +191,13 @@ def track_specific_tutee(
                     "drop_reason": enrollment.drop_reason,
                     "evaluations_submitted": len(evaluations)
                 })
-        
+        user = hcmut_api.get_student_by_id(id)
         return {
             "status": "success",
             "tutee": {
-                "id": tutee.id,
-                "username": tutee.username,
-                "role": tutee.role.value
+                "id": id,
+                "name": user.full_name,
+                "role": "Tutee"
             },
             "total_enrollments": len(enrollments_data),
             "enrollments": enrollments_data
@@ -226,7 +221,7 @@ def create_report(
     if not report_data:
         raise HTTPException(status_code=400, detail="Missing reportData")
     
-    report_type = report_data.get('type')  # e.g., 'course_summary', 'tutee_progress', 'tutor_performance'
+    report_type = report_data.get('type')  # e.g., 'course_summary', 'enrollment_summary'
     filters = report_data.get('filters', {})
     
     if not report_type:

@@ -23,7 +23,7 @@ class Notification(Base):
     title = Column(String, nullable=False)
     content = Column(Text, nullable=False)
     is_read = Column(Boolean, default=False)
-    related_id = Column(Integer, nullable=True) 
+    related_id = Column(Integer, nullable=True) #related course id
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     #user = relationship("MututorUser", back_populates="notifications") 
