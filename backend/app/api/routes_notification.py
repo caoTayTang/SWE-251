@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, WebSocket, WebSocketDisconnect
 from ..models import *
 from ..services import *
 from fastapi.responses import JSONResponse
@@ -7,10 +7,21 @@ from fastapi import Depends, HTTPException, status, Cookie, Response
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
 from .auth import get_current_user_from_session
-
+from ..core import manager
 router = APIRouter()
 
 notification_service = NotificationService(mututor_session)
+
+
+@router.websocket("/ws/notifications/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: str):
+    await manager.connect(websocket, user_id)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
+
 
 @router.get("/notifications")
 def get_notifications(

@@ -9,6 +9,8 @@ from datetime import datetime, timezone, timedelta
 import uuid
 from .auth import get_current_user_from_session
 from ..hcmut_database import *
+import asyncio
+
 router = APIRouter()
 
 course_service = CourseService(mututor_session)
@@ -201,7 +203,7 @@ def create_course(
         raise HTTPException(status_code=500, detail=f"Failed to create course: {str(e)}")
 
 @router.put("/courses")
-def modify_course(
+async def modify_course(
     data: dict = Body(...),
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
@@ -329,13 +331,24 @@ def modify_course(
         notification_count = 0
         for enrollment in enrollments:
             if enrollment.status == EnrollmentStatus.ENROLLED:
-                notification_service.create(
+                notif = notification_service.create(
                     user_id=enrollment.tutee_id,
                     type=NotificationType.SCHEDULE_CHANGE,
                     title=f"Course Updated: {updated_course.title}",
                     content=f"The course '{updated_course.title}' has been updated by the tutor. Please check the course details.",
                     related_id=course_id
                 )
+                await manager.send_personal_message({
+                    "type": "NEW_NOTIFICATION",
+                    "data": {
+                        "id": notif.id,
+                        "title": notif.title,
+                        "content": notif.content,
+                        "type": notif.type.value,
+                        "created_at": notif.created_at.isoformat()
+                    }
+                }, user_id=enrollment.tutee_id)
+
                 notification_count += 1
         
         return {
@@ -358,7 +371,7 @@ def modify_course(
 
 
 @router.delete("/courses")
-def delete_course(
+async def delete_course(
     data: dict = Body(...),
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
@@ -390,13 +403,23 @@ def delete_course(
     notification_count = 0
     for enrollment in enrollments:
         if enrollment.status == EnrollmentStatus.ENROLLED:
-            notification_service.create(
+            notif = notification_service.create(
                 user_id=enrollment.tutee_id,
                 type=NotificationType.ENROLLMENT_CANCELLED,
                 title=f"Course Cancelled: {course_title}",
                 content=f"The course '{course_title}' has been cancelled by the tutor.",
                 related_id=course_id
             )
+            await manager.send_personal_message({
+                "type": "NEW_NOTIFICATION",
+                "data": {
+                    "id": notif.id,
+                    "title": notif.title,
+                    "content": notif.content,
+                    "type": notif.type.value,
+                    "created_at": notif.created_at.isoformat()
+                }
+            }, user_id=enrollment.tutee_id)
             notification_count += 1
     
     return {"status": "success",
@@ -480,7 +503,7 @@ def get_courses_tutee(
     }
 
 @router.post("/enrollments")
-def enroll_course(
+async def enroll_course(
     data: dict = Body(...),
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
@@ -537,22 +560,43 @@ def enroll_course(
                 status=EnrollmentStatus.ENROLLED
             )
 
-        notification_service.create(
+        notif_1 = notification_service.create(
             user_id=course.tutor_id,
             type=NotificationType.ENROLLMENT_SUCCESS,
             title=f"New Enrollment: {course.title}",
             content=f"Student {current_user.user_id} has enrolled in your course '{course.title}'.",
             related_id=course_id
         )
-   
-        notification_service.create(
+        await manager.send_personal_message({
+            "type": "NEW_NOTIFICATION",
+            "data": {
+                "id": notif_1.id,
+                "title": notif_1.title,
+                "content": notif_1.content,
+                "type": notif_1.type.value,
+                "created_at": notif_1.created_at.isoformat()
+            }
+        }, user_id=course.tutor_id)
+
+        notif_2 = notification_service.create(
             user_id=tutee_id,
             type=NotificationType.ENROLLMENT_SUCCESS,
             title=f"Enrollment Confirmed: {course.title}",
             content=f"You have successfully enrolled in '{course.title}'.",
             related_id=course_id
         )
-        
+
+        await manager.send_personal_message({
+            "type": "NEW_NOTIFICATION",
+            "data": {
+                "id": notif_2.id,
+                "title": notif_2.title,
+                "content": notif_2.content,
+                "type": notif_2.type.value,
+                "created_at": notif_2.created_at.isoformat()
+            }
+        }, user_id=tutee_id)
+
         return {
             "status": "success",
             "message": "Successfully enrolled in course",
@@ -566,7 +610,7 @@ def enroll_course(
         raise HTTPException(status_code=500, detail=f"Failed to enroll: {str(e)}")
 
 @router.delete("/enrollments")
-def unregister_course(
+async def unregister_course(
     data: dict = Body(...),
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
@@ -604,7 +648,7 @@ def unregister_course(
             drop_reason=drop_reason
         )
 
-        notification_service.create(
+        notif_1 = notification_service.create(
             user_id=course.tutor_id,
             type=NotificationType.ENROLLMENT_CANCELLED,
             title=f"Student Dropped: {course.title}",
@@ -612,8 +656,18 @@ def unregister_course(
             related_id=course_id
         )
         
+        await manager.send_personal_message({
+            "type": "NEW_NOTIFICATION",
+            "data": {
+                "id": notif_1.id,
+                "title": notif_1.title,
+                "content": notif_1.content,
+                "type": notif_1.type.value,
+                "created_at": notif_1.created_at.isoformat()
+            }
+        }, user_id=course.tutor_id)
 
-        notification_service.create(
+        notif_2 = notification_service.create(
             user_id=tutee_id,
             type=NotificationType.ENROLLMENT_CANCELLED,
             title=f"Unenrolled: {course.title}",
@@ -621,6 +675,17 @@ def unregister_course(
             related_id=course_id
         )
         
+        await manager.send_personal_message({
+            "type": "NEW_NOTIFICATION",
+            "data": {
+                "id": notif_2.id,
+                "title": notif_2.title,
+                "content": notif_2.content,
+                "type": notif_2.type.value,
+                "created_at": notif_2.created_at.isoformat()
+            }
+        }, user_id=tutee_id)
+
         return {
             "status": "success",
             "message": "Successfully unenrolled from course",

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session, sessionmaker
 from typing import List, Optional
 from datetime import datetime, timezone
-from ..models.record import MeetingRecord, MeetingRecordStatus
+from ..models.record import MeetingRecord
 
 
 class MeetingRecordService:
@@ -9,14 +9,12 @@ class MeetingRecordService:
         self.db_session = db_session
 
     def create(self, course_id: int, tutor_id: str, 
-               attendees: Optional[str] = None, discussion_points: Optional[str] = None,
-               status: MeetingRecordStatus = MeetingRecordStatus.PENDING) -> MeetingRecord:
+               attendees: Optional[str] = None, discussion_points: Optional[str] = None) -> MeetingRecord:
         record = MeetingRecord(
             course_id=course_id,
             tutor_id=tutor_id,
             attendees=attendees,
             discussion_points=discussion_points,
-            status=status
         )
         db = self.db_session()
         db.add(record)
@@ -49,15 +47,9 @@ class MeetingRecordService:
         db.close()
         return result
 
-    def get_by_status(self, status: MeetingRecordStatus) -> List[MeetingRecord]:
-        db = self.db_session()
-        result = db.query(MeetingRecord).filter(MeetingRecord.status == status).all()
-        db.close()
-        return result
 
     def update(self, record_id: int, attendees: Optional[str] = None,
-               discussion_points: Optional[str] = None, 
-               status: Optional[MeetingRecordStatus] = None) -> Optional[MeetingRecord]:
+               discussion_points: Optional[str] = None) -> Optional[MeetingRecord]:
         db = self.db_session()
         record = db.query(MeetingRecord).filter(MeetingRecord.id == record_id).first()
         if not record:
@@ -68,8 +60,6 @@ class MeetingRecordService:
             record.attendees = attendees
         if discussion_points is not None:
             record.discussion_points = discussion_points
-        if status is not None:
-            record.status = status
         
         record.updated_at = datetime.now(timezone.utc)
         db.commit()
@@ -77,11 +67,6 @@ class MeetingRecordService:
         db.close()
         return record
 
-    def approve(self, record_id: int) -> Optional[MeetingRecord]:
-        return self.update(record_id, status=MeetingRecordStatus.APPROVED)
-
-    def reject(self, record_id: int) -> Optional[MeetingRecord]:
-        return self.update(record_id, status=MeetingRecordStatus.REJECTED)
 
     def delete(self, record_id: int) -> bool:
         db = self.db_session()

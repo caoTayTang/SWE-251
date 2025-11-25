@@ -1,86 +1,180 @@
-{ //login
-  "username":"a.nguyen21","password":"toi_yeu_mu","role":"tutee"
-}
-
 {
-  "courseData": { //create_course
-          "title": "Học với Abe",
-          "subject_id": "666",
-          "max_students": "25",
-          "description": "cam on vi da den",
-          "level": "beginner",
-          "status": "open"
-        },
-        "courseSessions": [
-          {
-            "session_number": 1,
-            "session_date": "2025-11-29", 
-            "start_time": "08:00",
-            "end_time": "10:30",
-            "format": "offline", 
-            "location": "GDH6"
-          },
-          {
-            "session_number": 2,
-            "session_date": "2025-11-30", 
-            "start_time": "08:00",
-            "end_time": "10:30",
-            "format": "offline", 
-            "location": "GDH6"
-          }
-        ],
-        "courseResources": [1,5]
-}
-
-{ //modify course
-  "id": 3,
-  "updatedData": {
-    "description": "xin loi vi da den",
-    "level": "advanced"
+  "// ==================== AUTH ====================": "",
+  
+  "login": {
+    "username": "a.nguyen21",
+    "password": "toi_yeu_mu",
+    "role": "tutee"
   },
-  "updatedSessionData": {
-    "session_number": 1,
-    "session_date": "2025-12-05",
-    "start_time": "08:00",
-    "end_time": "11:00",
-    "format": "online",
-    "location": "toi-yeu-mu.com"
+
+  "// ==================== COURSE MANAGEMENT (TUTOR) ====================": "",
+  
+  "create_course": {
+    "courseData": {
+      "title": "Học với Abe",
+      "subject_id": 666,
+      "max_students": 25,
+      "description": "cam on vi da den",
+      "level": "beginner",
+      "status": "open"
+    },
+    "courseSessions": [
+      {
+        "session_number": 1,
+        "session_date": "2025-11-29",
+        "start_time": "08:00",
+        "end_time": "10:30",
+        "format": "offline",
+        "location": "GDH6"
+      },
+      {
+        "session_number": 2,
+        "session_date": "2025-11-30",
+        "start_time": "08:00",
+        "end_time": "10:30",
+        "format": "offline",
+        "location": "GDH6"
+      }
+    ],
+    "courseResources": [1, 5]
   },
-  "courseSessionId": 1,
-  "courseResources": [1, 2, 3]
-}
 
-{// enroll course
-   "courseId": 2,
-   "tuteeId": "2210001" // or null
-}
+  "modify_course": {
+    "id": 3,
+    "updatedData": {
+      "description": "xin loi vi da den",
+      "level": "advanced"
+    },
+    "updatedSessionData": {
+      "session_number": 1,
+      "session_date": "2025-12-05",
+      "start_time": "08:00",
+      "end_time": "11:00",
+      "format": "online",
+      "location": "toi-yeu-mu.com"
+    },
+    "courseSessionId": 1,
+    "courseResources": [1, 2, 3]
+  },
 
-{//delete enrollment
-   "courseId": 2,
-   "tuteeId": "2210001",
-   "reason": "ff"
-}
+  "delete_course": {
+    "id": 3
+  },
 
-{//post feedback
-  "feedbackData": {
-     "topic": "Góp ý",
-     "content": "Web xịn quá, xứng đáng 10đ",
-     "isAnonymous": true
-  }
-}
+  "// ==================== ENROLLMENT (TUTEE) ====================": "",
+  
+  "enroll_course": {
+    "courseId": 2,
+    "tuteeId": "2210001"
+  },
 
-{//post session eval
-   "evaluationData": {
+  "unenroll_course": {
+    "courseId": 2,
+    "tuteeId": "2210001",
+    "reason": "Schedule conflict"
+  },
+
+  "// ==================== FEEDBACK & EVALUATION ====================": "",
+  
+  "post_feedback": {
+    "feedbackData": {
+      "topic": "Góp ý",
+      "content": "Web xịn quá, xứng đáng 10đ",
+      "isAnonymous": true
+    }
+  },
+
+  "post_session_evaluation": {
+    "evaluationData": {
       "sessionId": 1,
       "courseId": 2,
       "rating": 5,
       "comment": "nothing to say...",
       "isAnonymous": true
-  }
-}
+    }
+  },
 
-{//post report
-  "reportData": {
-  "type": "enrollment_summary"
- }
+  "// ==================== MEETING RECORDS (TUTOR) ====================": "",
+  
+  "create_meeting_record": {
+    "recordData": {
+      "attendees": "Student A, Student B, Student C",
+      "discussionPoints": "Discussed project requirements and deadlines. Reviewed assignment submissions. Answered questions about upcoming exam."
+    }
+  },
+
+  "update_meeting_record": {
+    "updatedData": {
+      "attendees": "Student A, Student B, Student C, Student D",
+      "discussionPoints": "Updated: Discussed project requirements, deadlines, and exam preparation. Added extra Q&A session."
+    }
+  },
+
+  "// ==================== LIBRARY ====================": "",
+  
+  "download_resource": {
+    "id": 5
+  },
+
+  "attach_resource_to_course": {
+    "docId": 1,
+    "classId": 2,
+    "tutorId": "2210001"
+  },
+
+  "detach_resource_from_course": {
+    "docId": 1,
+    "classId": 2
+  },
+
+  "// ==================== NOTIFICATIONS ====================": "",
+  
+  "mark_notification_read": {
+    "id": 15
+  },
+
+  "mark_all_notifications_read": {
+    "markAll": true
+  },
+
+  "// ==================== REPORTS (ADMIN) ====================": "",
+  
+  "generate_course_summary_report": {
+    "reportData": {
+      "type": "course_summary"
+    }
+  },
+
+  "generate_enrollment_summary_report": {
+    "reportData": {
+      "type": "enrollment_summary"
+    }
+  },
+
+  "// ==================== EXAMPLE USAGE NOTES ====================": "",
+  "_notes": {
+    "authentication": "All routes except /login, /roles, /, and /health require authentication via session cookie",
+    "path_parameters": {
+      "GET /api/courses/{course_id}/records": "Replace {course_id} with actual course ID, e.g., /api/courses/3/records",
+      "POST /api/courses/{course_id}/records": "Replace {course_id} with actual course ID, e.g., /api/courses/3/records",
+      "PUT /api/records/{record_id}": "Replace {record_id} with actual record ID, e.g., /api/records/5",
+      "DELETE /api/records/{record_id}": "Replace {record_id} with actual record ID, e.g., /api/records/5",
+      "GET /api/library/{id}": "Replace {id} with resource ID, e.g., /api/library/1",
+      "GET /api/session-evaluations/course/{course_id}": "Replace {course_id} with course ID",
+      "GET /api/tutor/tracking/classes/{id}": "Replace {id} with course ID",
+      "GET /api/tutor/tracking/tutees/{id}": "Replace {id} with tutee ID"
+    },
+    "query_parameters": {
+      "GET /api/courses": "Add ?status=open or ?subject_id=1 or ?level=beginner",
+      "GET /api/library": "Add ?type=material or ?q=python",
+      "GET /api/feedback": "Add ?topic=Góp ý",
+      "GET /api/notifications": "Add ?unread_only=true",
+      "GET /api/tutee/enrollments": "Add ?status=enrolled"
+    },
+    "role_requirements": {
+      "tutor": "Can create/modify/delete courses, create meeting records, attach/detach resources",
+      "tutee": "Can enroll/unenroll in courses, submit feedback and evaluations",
+      "admin": "Can view all tracking data, generate reports, view all feedback"
+    }
+  }
 }

@@ -3,7 +3,7 @@ from .user_service import UserService
 from .course_service import CourseService, CourseSessionService, SubjectService, CourseResourceService
 from .enrollment_service import EnrollmentService
 from .feedback_service import FeedbackService, SessionEvaluationService
-from .notification_service import NotificationService
+from .notification_service import NotificationService, ReminderService
 from .record_service import MeetingRecordService
 
 
@@ -34,6 +34,7 @@ __all__ = [
     "FeedbackService",
     "SessionEvaluationService",
     "NotificationService",
+    "ReminderService",
     "MeetingRecordService",
     "ServiceRegistry",
     "CourseResourceService",

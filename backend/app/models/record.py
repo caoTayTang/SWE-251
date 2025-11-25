@@ -5,11 +5,6 @@ import enum
 from .base import Base
 
 
-class MeetingRecordStatus(str, enum.Enum):
-    PENDING = "pending"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-
 class MeetingRecord(Base):
     __tablename__ = "meeting_records"
 
@@ -18,7 +13,6 @@ class MeetingRecord(Base):
     tutor_id = Column(String, ForeignKey("users.id"), nullable=False) 
     attendees = Column(Text, nullable=True)  
     discussion_points = Column(Text, nullable=True)
-    status = Column(Enum(MeetingRecordStatus), default=MeetingRecordStatus.PENDING)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 

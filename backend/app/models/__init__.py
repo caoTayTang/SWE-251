@@ -3,7 +3,7 @@ from .course import Course, CourseStatus, CourseFormat, Subject, Level, CourseSe
 from .enrollment import Enrollment, EnrollmentStatus
 from .feedback import Feedback, SessionEvaluation
 from .notification import Notification, NotificationType
-from .record import MeetingRecord, MeetingRecordStatus
+from .record import MeetingRecord
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from .base import Base
@@ -30,7 +30,6 @@ __all__ = [
     "Notification",
     "NotificationType",
     "MeetingRecord",
-    "MeetingRecordStatus",
     "MuSession",
     "mututor_session",
     "Base"

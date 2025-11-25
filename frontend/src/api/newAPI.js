@@ -460,6 +460,107 @@ const API_ROUTES = {
     }
   },
 
+  // ==================== MEETING RECORD ROUTES ====================
+  records: {
+    getCourseRecords: {
+      method: 'GET',
+      path: '/api/courses/{course_id}/records',
+      requiresAuth: true,
+      requiresRole: ['tutor', 'admin'],
+      pathParams: {
+        course_id: 'number'
+      },
+      input: null,
+      output: {
+        status: 'success',
+        course_id: 'number',
+        course_title: 'string',
+        total_records: 'number',
+        records: [
+          {
+            id: 'number',
+            course_id: 'number',
+            tutor_id: 'string',
+            attendees: 'string | null',
+            discussion_points: 'string',
+            created_at: 'string', // ISO datetime
+            updated_at: 'string' // ISO datetime
+          }
+        ]
+      }
+    },
+
+    createCourseRecord: {
+      method: 'POST',
+      path: '/api/courses/{course_id}/records',
+      requiresAuth: true,
+      requiresRole: 'tutor',
+      pathParams: {
+        course_id: 'number'
+      },
+      input: {
+        recordData: {
+          attendees: 'string', // optional
+          discussionPoints: 'string' // required
+        }
+      },
+      output: {
+        status: 'success',
+        message: 'Meeting record created successfully',
+        record: {
+          id: 'number',
+          course_id: 'number',
+          tutor_id: 'string',
+          attendees: 'string | null',
+          discussion_points: 'string',
+          created_at: 'string'
+        }
+      }
+    },
+
+    updateMeetingRecord: {
+      method: 'PUT',
+      path: '/api/records/{record_id}',
+      requiresAuth: true,
+      requiresRole: 'tutor',
+      pathParams: {
+        record_id: 'number'
+      },
+      input: {
+        updatedData: {
+          attendees: 'string', // optional
+          discussionPoints: 'string' // optional
+        }
+      },
+      output: {
+        status: 'success',
+        message: 'Meeting record updated successfully',
+        record: {
+          id: 'number',
+          course_id: 'number',
+          attendees: 'string | null',
+          discussion_points: 'string',
+          updated_at: 'string'
+        }
+      }
+    },
+
+    deleteMeetingRecord: {
+      method: 'DELETE',
+      path: '/api/records/{record_id}',
+      requiresAuth: true,
+      requiresRole: 'tutor',
+      pathParams: {
+        record_id: 'number'
+      },
+      input: null,
+      output: {
+        status: 'success',
+        message: 'Meeting record deleted successfully'
+      }
+    }
+  },
+
   // ==================== LIBRARY ROUTES ====================
   library: {
     getResources: {
@@ -596,7 +697,7 @@ const API_ROUTES = {
         notifications: [
           {
             id: 'number',
-            type: 'string', // 'enrollment_success' | 'enrollment_cancelled' | 'schedule_change' | 'general'
+            type: 'string', // 'enrollment_success' | 'enrollment_cancelled' | 'schedule_change' | 'session_reminder' | 'general'
             title: 'string',
             content: 'string',
             related_id: 'number | null',
@@ -717,7 +818,7 @@ const API_ROUTES = {
         tutees: [
           {
             id: 'string',
-            username: 'string',
+            name: 'string',
             total_enrollments: 'number',
             active_courses: 'number',
             completed_courses: 'number',
@@ -740,7 +841,7 @@ const API_ROUTES = {
         status: 'success',
         tutee: {
           id: 'string',
-          username: 'string',
+          name: 'string',
           role: 'string'
         },
         total_enrollments: 'number',
@@ -789,7 +890,7 @@ const API_ROUTES = {
     }
   },
 
-  // ==================== UTILITY ROUTES ====================
+  // ==================== OTHER ROUTES ====================
   utils: {
     healthCheck: {
       method: 'GET',
@@ -807,6 +908,19 @@ const API_ROUTES = {
       output: {
         message: 'Backend is up and running. Navigate to ./docs for Swagger contents'
       }
+    }
+  },
+
+  ws: {
+    notifications: {
+      method: 'websocket',
+      path: '/api/ws/notifications/{user_id}',
+      pathParams: {
+        user_id: 'string'
+      },
+      input: 'user_id',
+      output: null,
+      description: 'WebSocket connection for real-time notifications'
     }
   }
 };
@@ -833,11 +947,11 @@ const ERROR_RESPONSES = {
 // ==================== ENUMS ====================
 const ENUMS = {
   UserRole: ['tutor', 'tutee', 'admin'],
-  CourseStatus: ['pending', 'open', 'closed', 'cancelled'],
+  CourseStatus: ['pending', 'open', 'ongoing', 'completed', 'cancelled', 'inactive'],
   Level: ['beginner', 'intermediate', 'advanced'],
   CourseFormat: ['online', 'offline'],
   EnrollmentStatus: ['enrolled', 'dropped', 'completed'],
-  NotificationType: ['enrollment_success', 'enrollment_cancelled', 'schedule_change', 'general'],
+  NotificationType: ['enrollment_success', 'enrollment_cancelled', 'schedule_change', 'session_reminder', 'general'],
   ResourceType: ['material', 'exam'],
   FileType: ['pdf', 'docx', 'pptx', 'xlsx']
 };

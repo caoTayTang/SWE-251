@@ -336,7 +336,6 @@ def seed_record(engine, db):
                     tutor_id=tutor1.id,
                     attendees="Tutor (2210001), 5 students",
                     discussion_points="Reviewed chapter 3 quiz results.",
-                    status=MeetingRecordStatus.PENDING
                 ))
                 db.commit()
                 print("Committed sample MeetingRecord.")
@@ -377,7 +376,7 @@ if __name__ == "__main__":
     # seed_notification(engine,db)
     print("Seeding data...")
 
-    seed_session(engine,db)
+    seed_record(engine,db)
     #a= UserRole("tutor")
 
 
