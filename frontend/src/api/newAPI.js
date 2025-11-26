@@ -957,3 +957,47 @@ const ENUMS = {
 };
 
 export { API_ROUTES, ERROR_RESPONSES, ENUMS };
+
+
+
+// Connect to WebSocket on frontend
+import React, { useEffect, useState } from 'react';
+
+const NotificationComponent = ({ userId }) => {
+  useEffect(() => {
+    // Connect to WebSocket
+    const ws = new WebSocket(`ws://localhost:8000/api/ws/notifications/${userId}`);
+
+    ws.onopen = () => {
+      console.log('Connected to notification service');
+    };
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+        //format
+        // {
+        // "type": "NEW_NOTIFICATION",
+        // "data": {
+        //     "id": notif_2.id,
+        //     "title": notif_2.title,
+        //     "content": notif_2.content,
+        //     "type": notif_2.type.value,
+        //     "created_at": notif_2.created_at.isoformat()
+        // }
+      if (message.type === 'NEW_NOTIFICATION') {
+        alert(`New Notification: ${message.data.title}`);
+        // Or update your Redux/Context state to show a badge
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('Disconnected from notification service');
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [userId]);
+
+  return <div>{/* Your Notification Bell Icon */}</div>;
+};
