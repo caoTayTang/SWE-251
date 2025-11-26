@@ -5,6 +5,7 @@ from .enrollment_service import EnrollmentService
 from .feedback_service import FeedbackService, SessionEvaluationService
 from .notification_service import NotificationService, ReminderService
 from .record_service import MeetingRecordService
+from .session_service import SessionService
 
 
 class ServiceRegistry:
@@ -27,6 +28,7 @@ def get_services(db_session: sessionmaker) -> ServiceRegistry:
 
 __all__ = [
     "UserService",
+    "SessionService",
     "SubjectService",
     "CourseService",
     "CourseSessionService",

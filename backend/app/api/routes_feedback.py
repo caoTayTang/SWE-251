@@ -55,8 +55,8 @@ def get_feedback_topics(
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
     """Get all unique feedback topics"""
-    if current_user.role != UserRole('tutor') and current_user.role != UserRole('admin'):
-        raise HTTPException(status_code=403, detail="Not authorized, requires TUTOR or ADMIN role")
+    # if current_user.role != UserRole('tutor') and current_user.role != UserRole('admin'):
+    #     raise HTTPException(status_code=403, detail="Not authorized, requires TUTOR or ADMIN role")
     
     try:
         feedbacks = feedback_service.get_all()

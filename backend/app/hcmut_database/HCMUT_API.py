@@ -294,7 +294,7 @@ class HCMUT_API:
    
 
             booked_room_ids = [room_id for (room_id,) in booked_rooms]
-            if exclude_room.id in booked_room_ids:
+            if exclude_room and exclude_room.id in booked_room_ids:
                 booked_room_ids.remove(exclude_room.id)
 
             free_rooms = session.query(Room).filter(

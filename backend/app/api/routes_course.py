@@ -86,6 +86,8 @@ def create_course(
     course_data = data.get('courseData')
     course_sessions = data.get('courseSessions', [])  # List of session data
     course_resources = data.get('courseResources', [])  # List of resource IDs
+
+    print(f"{course_data=}\n {course_sessions=}\n {course_resources=}")
     
     if not course_data:
         raise HTTPException(status_code=400, detail="Missing courseData")
@@ -94,6 +96,7 @@ def create_course(
         for session_data in course_sessions:
             schedule_result = course_session_service.check_time_confict(tutor_id=current_user.user_id, sessions=session_data)
             if not schedule_result['valid']:
+                print("SCHED NOT VALID")
                 raise HTTPException(
                     status_code=400,
                     detail={"message": "Schedule validation failed","errors": schedule_result['errors']} )
@@ -105,6 +108,7 @@ def create_course(
             room_name = session_data.get('location')
             room = hcmut_api.get_room_by_name(room_name)
             if not room: 
+                print("NOT ROOM")
                 raise HTTPException(
                     status_code=400,
                     detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room not found for room {room_name}"})
@@ -114,6 +118,7 @@ def create_course(
             
             if not room_result:
                 other_room = [room.name for room in hcmut_api.get_free_rooms_by_datetime(session_date,start_time,end_time)]
+                print("ROOM RESULT NOT VALID")
                 raise HTTPException(
                     status_code=400,    
                     detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room validation fails, other free room: {other_room}"} )
@@ -370,16 +375,18 @@ async def modify_course(
         raise HTTPException(status_code=500, detail=f"Failed to update course: {str(e)}")
 
 
-@router.delete("/courses")
+@router.delete("/courses/{course_id}")
 async def delete_course(
-    data: dict = Body(...),
+    # data: dict = Body(...),
+    course_id: int,
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
     """Delete a course (tutor only) and notify all enrolled tutees"""
+    print(f"Deleting course id {course_id}")
     if current_user.role != UserRole('tutor'):
         raise HTTPException(status_code=403, detail="Not authorized, requires TUTOR role")
     
-    course_id = data.get('id')
+    # course_id = data.get('id')
     if not course_id:
         raise HTTPException(status_code=400, detail="Missing course id")
  
@@ -614,6 +621,7 @@ async def unregister_course(
     data: dict = Body(...),
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
+    print("DATA UNENROLL", data)
     """Unenroll a tutee from a course and notify the tutor"""
     if current_user.role != UserRole('tutee'):
         raise HTTPException(status_code=403, detail="Not authorized, requires TUTEE role")

@@ -1,24 +1,50 @@
-from fastapi import APIRouter, Body
-from ..models import*
-from ..services import*
+from fastapi import APIRouter, Body, Cookie
+from ..models import *
+from ..services import *
 from fastapi.responses import JSONResponse
 from ..core import*
 from fastapi import Depends, HTTPException, status, Cookie, Response
 from datetime import datetime, timezone, timedelta
 import uuid
 from ..hcmut_database import*
+from typing import Optional
 
 logger = get_logger("LOGIN")
 router = APIRouter()
 user_service = UserService(mututor_session)
+session_service = SessionService(mututor_session)
 
 @router.get("/roles")
 def get_role():
     return [
-            { 'id': 'TUTOR', 'label': 'tutor', 'description': 'Dành cho sinh viên muốn dạy kèm' },
-            { 'id': 'TUTEE', 'label': 'tutee', 'description': 'Dành cho sinh viên cần học thêm' },
-            { 'id': 'ADMIN', 'label': 'admin', 'description': 'Quản trị hệ thống' },
+            { 'id': 'TUTOR', 'label': 'Tutor', 'description': 'Dành cho sinh viên muốn dạy kèm' },
+            { 'id': 'TUTEE', 'label': 'Tutee', 'description': 'Dành cho sinh viên cần học thêm' },
+            { 'id': 'ADMIN', 'label': 'Admin', 'description': 'Quản trị hệ thống' },
          ]
+
+@router.get("/me")
+def me(session_id: Optional[str] = Cookie(None)): 
+    print(f"DEBUG COOKIE: {session_id}")
+    if not session_id:
+        raise HTTPException(
+            status_code=401, 
+            detail="Not authenticated (No Cookie found)"
+        )
+
+    current_user = session_service.get_by_session_id(session_id)
+    if not current_user:
+        raise HTTPException(
+        status_code=401,
+        detail=f"Invalid session id",
+    )
+
+    return {
+        'user_id': current_user.user_id,
+        'role': current_user.role,
+    }
+    
+
+    
 
 @router.post("/login")
 def login(
@@ -29,7 +55,7 @@ def login(
     password = data.get("password")
     role = data.get("role")
     
-    #logger.info(role.__len__())
+    # logger.info(role.__len__())
     if not hcmut_api.check_password(username, password) :
         raise HTTPException(
             status_code=401,
@@ -40,7 +66,8 @@ def login(
     user_id = user.id
     if role.lower() == 'tutor' or role.lower() == 'admin':
         mu_user = user_service.get_by_id(user_id)
-        if not mu_user or mu_user.role != role:
+        print("LOG ROLE: ", mu_user, role)
+        if not mu_user or mu_user.role.lower() != role.lower():
             raise HTTPException(
             status_code=403,
             detail=f"You don't have permission to login as {role}",
@@ -68,7 +95,7 @@ def login(
         value=session.session_id,
         httponly=True,  
         secure=True,    
-        samesite="lax"  
+        samesite="none",
     )
     
     return {"username": user.username, "role": role, "status": "Login successful"}
