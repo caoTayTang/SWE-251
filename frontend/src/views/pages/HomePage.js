@@ -22,8 +22,8 @@ export default function HomePage() {
           HCMUT Tutor Support System
         </h1>
         <p className="text-gray-700 mt-4 max-w-2xl">
-          Nền tảng kết nối, hỗ trợ học tập giữa sinh viên – nơi bạn có thể trở thành
-          Tutor hoặc tìm người đồng hành trong học tập.
+          Nền tảng kết nối, hỗ trợ học tập giữa sinh viên – nơi bạn có thể trở
+          thành Tutor hoặc tìm người đồng hành trong học tập.
         </p>
 
         <div className="mt-8 flex gap-4">
@@ -42,7 +42,6 @@ export default function HomePage() {
             Trang chủ BK
           </a>
         </div>
-
       </main>
 
       <footer className="text-center text-gray-500 text-sm py-4 border-t bg-white/70">

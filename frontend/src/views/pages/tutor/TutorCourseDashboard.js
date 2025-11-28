@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import CourseList from '../../components/Course/CouseList';
-import CourseForm from '../../components/Course/CourseForm';
-import { getMyCourses } from '../../../api/api'; 
-import { Plus } from 'lucide-react';
-import { useUser } from '../../../contexts/AuthContext';
+import React, { useState, useEffect, useCallback } from "react";
+import CourseList from "../../components/Course/CouseList";
+import CourseForm from "../../components/Course/CourseForm";
+import { getMyCourses } from "../../../api/api";
+import { Plus } from "lucide-react";
+import { useUser } from "../../../contexts/AuthContext";
 
 export default function TutorCourseDashboard() {
   const user = useUser(); // <-- lấy user từ context
-  const [view, setView] = useState('list'); // list, create, edit
+  const [view, setView] = useState("list"); // list, create, edit
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -16,37 +16,35 @@ export default function TutorCourseDashboard() {
     if (!user) return;
     setLoading(true);
     try {
-      const response = await getMyCourses(user.id); 
-      setCourses(response.data);
+      const response = await getMyCourses(user.id);
+      setCourses(response.data.courses);
     } catch (error) {
-      console.error('Fail to load courses:', error);
+      console.error("Fail to load courses:", error);
     }
     setLoading(false);
   }, [user]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]); 
-
+  }, [fetchData]);
 
   const startEdit = (course) => {
     setSelectedCourse(course);
-    setView('edit');
+    setView("edit");
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-6 py-8">
-
         <div className="flex justify-end mb-4">
           <button
-            onClick={() => setView('create')}
+            onClick={() => setView("create")}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
           >
             <Plus className="w-5 h-5" /> Tạo khóa học
           </button>
         </div>
-        {(view === 'create' || view === 'edit') && (
+        {(view === "create" || view === "edit") && (
           <CourseForm
             view={view}
             course={selectedCourse}
@@ -55,7 +53,7 @@ export default function TutorCourseDashboard() {
             setSelectedCourse={setSelectedCourse}
           />
         )}
-        {view === 'list' && (
+        {view === "list" && (
           <CourseList
             courses={courses}
             setView={setView}

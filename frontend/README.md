@@ -77,27 +77,14 @@ This project is a mockup of a Moodle-like application, built with a React fronte
 
 ## Setup and Running
 
-### Backend (Flask)
+### Backend (FastAPI)
 
 1.  Navigate to the `backend` directory:
     ```sh
     cd backend
+    python -m app.main
     ```
-2.  (Optional) Create and activate a virtual environment:
-    ```sh
-    python -m venv venv
-    source venv/bin/activate
-    ```
-3.  Install dependencies:
-    ```sh
-    pip install Flask Flask-Cors
-    ```
-4.  Run the backend server:
-    ```sh
-    python app.py
-    ```
-    The backend will be running at `http://localhost:5001`.
-
+Go to [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) for Swagger API test.
 ### Frontend (React)
 
 1.  Navigate to the `frontend` directory:
@@ -116,7 +103,7 @@ This project is a mockup of a Moodle-like application, built with a React fronte
 
 ## How Frontend Connects to Backend
 
-The frontend communicates with the backend via a helper module located at `src/api.js`. This module uses `fetch()` to make API calls to the Flask server, which runs on `http://localhost:5001/api`.
+The frontend communicates with the backend via a helper module located at `src/api.js`. This module uses `fetch()` to make API calls to the Flask server, which runs on `http://localhost:8000/api`.
 
 All API logic is centralized in `api.js` to make it reusable and easy to manage.
 

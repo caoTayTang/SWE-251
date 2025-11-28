@@ -1,23 +1,23 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, ForeignKey, Text, Time, Date
 from sqlalchemy.orm import relationship, declarative_base, Session
-from datetime import datetime, time, date, timedelta
+from datetime import datetime, time, date, timedelta, timezone
 import enum
 from .base import Base
-# --- Enums for Course Status and Format (Kept from original) ---
+
 
 class CourseStatus(str, enum.Enum):
-    PENDING = "pending"   # Course created, not yet open for enrollmenat
-    OPEN = "open"       # Open for enrollment (mock: "active")
-    ONGOING = "ongoing"   # Course is in progress
-    COMPLETED = "completed" # Course has finished
-    CANCELLED = "cancelled" # Course was cancelled
-    INACTIVE = "inactive" # Added from mock data
+    PENDING = "pending"   
+    OPEN = "open"      
+    ONGOING = "ongoing"  
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    INACTIVE = "inactive" 
 
 class CourseFormat(str, enum.Enum):
     ONLINE = "online"
     OFFLINE = "offline"
 
-# --- New Models based on Mock Data ---
+
 
 class Subject(Base):
     """
@@ -25,11 +25,10 @@ class Subject(Base):
     Corresponds to mockSubjects.
     """
     __tablename__ = "subjects"
-    # Using specific ID 101, 102 etc. from mock data
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False, unique=True, index=True)
 
-    # Relationship
     courses = relationship("Course", back_populates="subject")
 
     def __repr__(self):
@@ -40,7 +39,6 @@ class Level(str, enum.Enum):
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
 
-# --- Main Course Model (Modified) ---
 
 class Course(Base):
     __tablename__ = "courses"
@@ -51,8 +49,7 @@ class Course(Base):
     
     cover_image_url = Column(String, nullable=True)
    
-    # --- Foreign Keys ---
-    # FIXED: Changed Integer to String to match MututorUser.id
+
     tutor_id = Column(String, ForeignKey("users.id"), nullable=False, index=True) 
     
     subject_id = Column(Integer, ForeignKey("subjects.id"), nullable=False, index=True)
@@ -61,8 +58,8 @@ class Course(Base):
     max_students = Column(Integer, nullable=False)
     status = Column(Enum(CourseStatus), default=CourseStatus.PENDING, index=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
     
     subject = relationship("Subject", back_populates="courses")
@@ -71,7 +68,7 @@ class Course(Base):
     
     sessions = relationship("CourseSession", back_populates="course", cascade="all, delete-orphan")
     
-    meeting_records = relationship("MeetingRecord", back_populates="course")
+    meeting_records = relationship("MeetingRecord", back_populates="course", cascade="all, delete-orphan")
 
     resource = relationship("CourseResource", back_populates="course", cascade="all, delete-orphan")
 
@@ -101,12 +98,11 @@ class CourseSession(Base):
     format = Column(Enum(CourseFormat), default=CourseFormat.OFFLINE)
     location = Column(String, nullable=True)  #  class room for offline courses or link for online courses
 
-    # Relationship
+
     course = relationship("Course", back_populates="sessions")
     evaluations = relationship("SessionEvaluation", back_populates="session", cascade="all, delete-orphan")
     
     def __repr__(self):
-        # --- MODIFIED: Updated repr ---
         return f"<CourseSession(course_id={self.course_id}, session_id={self.id}, date={self.session_date})>"
 
 class CourseResource(Base):

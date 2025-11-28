@@ -1,7 +1,6 @@
 from models import*
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum, ForeignKey, Text, Time, Date
 from sqlalchemy.orm import Session
 from datetime import datetime, time, date, timedelta
 
@@ -23,7 +22,7 @@ def seed_user(engine, db):
 
     try:
         for u in mock_users:
-            # Check for existing username
+
             existing = db.query(MututorUser).filter_by(username=u["username"]).first()
             if existing:
                 print(f"User '{u['username']}' already exists, skipping.")
@@ -54,8 +53,7 @@ def seed_notification(engine, db):
 
     try:
         print("Seeding Notifications...")
-        
-        # We will assign all mock notifications to TUTEE_ID_1 for this example
+
         TUTEE_ID_1 = '2010002'
         TUTOR_ID_1 = '2310003'
         now = datetime.utcnow()
@@ -67,9 +65,9 @@ def seed_notification(engine, db):
                 "type": NotificationType.SESSION_REMINDER,
                 "title": "Nhắc nhở sự kiện",
                 "content": "Khóa học Kinh tế lượng sắp bắt đầu",
-                "is_read": False, # Mock 'unread: true'
-                "related_id": 1, # Course ID
-                "created_at": now - timedelta(hours=2) # Mock '2 giờ trước'
+                "is_read": False,
+                "related_id": 1, 
+                "created_at": now - timedelta(hours=2) 
             },
             {
                 "id": 2,
@@ -77,9 +75,9 @@ def seed_notification(engine, db):
                 "type": NotificationType.ENROLLMENT_SUCCESS,
                 "title": "Đăng ký thành công",
                 "content": "Bạn đã được thêm vào lớp Lập trình C++",
-                "is_read": False, # Mock 'unread: true'
-                "related_id": 2, # Course ID
-                "created_at": now - timedelta(days=1) # Mock '1 ngày trước'
+                "is_read": False, 
+                "related_id": 2, 
+                "created_at": now - timedelta(days=1)
             },
             {
                 "id": 3,
@@ -89,7 +87,7 @@ def seed_notification(engine, db):
                 "content": "Thầy đẹp trai quá",
                 "is_read": True, 
                 "related_id": None,
-                "created_at": now - timedelta(days=3) # Mock '3 ngày trước'
+                "created_at": now - timedelta(days=3) 
             }
         ]
 
@@ -101,10 +99,6 @@ def seed_notification(engine, db):
         
         db.commit()
         print("Committed Notifications.")
-        # --- End New Section ---
-
-        print("\n--- Successfully seeded database! ---")
-
     except Exception as e:
         print(f"\n--- An error occurred during seeding ---")
         print(e)
@@ -113,68 +107,21 @@ def seed_notification(engine, db):
         db.close()
         print("Database session closed.")
 
-if __name__ == "__main__":
-    DATABASE_URL = "sqlite:///muchat.db"
-    engine = create_engine(DATABASE_URL, echo=False)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-    print("Connecting to database to seed data...")
-    print("Dropping old tables...")
+def seed_course(engine,db):
     Base.metadata.drop_all(bind=engine, tables=[
         Course.__table__,
         CourseSession.__table__,
-        Subject.__table__,
-        Enrollment.__table__,
-        Feedback.__table__,
-        SessionEvaluation.__table__,
-        MeetingRecord.__table__ ,
         CourseResource.__table__
     ])
 
-    # Recreate them
-    print("Recreating tables...")
     Base.metadata.create_all(bind=engine, tables=[
         Course.__table__,
         CourseSession.__table__,
-        Subject.__table__,
-        Enrollment.__table__,
-        Feedback.__table__,
-        SessionEvaluation.__table__,
-        MeetingRecord.__table__,
         CourseResource.__table__
     ])
 
-    
-    db = SessionLocal()
-    
-    print("Seeding data...")
-
-    
-    seed_user(engine,db)
-    seed_notification(engine,db)
-
-
-    try:
-        # --- 1. Seed Subjects ---
-        print("Seeding Subjects...")
-        subjects_data = [
-            { "id": 101, "name": "Toán cao cấp" },
-            { "id": 102, "name": "Lập trình" },
-            { "id": 103, "name": "Vật lý" },
-            { "id": 104, "name": "Triết học" },
-            { "id": 666, "name": "7 day lên cao thủ" },
-            { "id": 336, "name": "Seminar"},
-            { "id": 366, "name": "Miscellaneous"}
-        ]
-        for sub_data in subjects_data:
-            if not db.query(Subject).filter_by(id=sub_data['id']).first():
-                db.add(Subject(**sub_data))
-        db.commit()
-        print("Committed Subjects.")
-
-        # --- 2. Add Courses & Sessions ---
-        print("Seeding Courses and Sessions...")
-        
+    print("Seeding Courses and Sessions...")
+    try: 
         # Course 1
         course1 = db.query(Course).filter_by(id=1).first()
         if not course1:
@@ -186,7 +133,6 @@ if __name__ == "__main__":
                 created_at=datetime.fromisoformat("2025-10-01T10:00:00Z")
             )
             db.add(course1)
-            # FIXED: 'id=1' is now 'session_number=1', etc. The 'id' PK is auto-generated.
             db.add_all([
                 CourseSession(session_number=1, course=course1, session_date=date(2025, 11, 13), start_time=time(18, 0), end_time=time(20, 0), location="H1-201", format=CourseFormat.OFFLINE),
                 CourseSession(session_number=2, course=course1, session_date=date(2025, 11, 20), start_time=time(18, 0), end_time=time(20, 0), location="H1-201", format=CourseFormat.OFFLINE),
@@ -214,14 +160,59 @@ if __name__ == "__main__":
                 CourseResource(course_id=2,resource_id=2)
             ])
             print("Added Course: Lập trình C++")
-            
-        # (Course 3 and 4 omitted for brevity, logic is the same)
-        # ...
-
+    
         db.commit()
         print("Committed Courses and Sessions.")
-        
-        # --- 3. Add Enrollments ---
+    except Exception as e:
+        print(f"\n--- An error occurred during seeding ---")
+        print(e)
+        db.rollback()
+    finally:
+        db.close()
+        print("Database session closed.")
+
+def seed_subject(engine, db):
+    Base.metadata.drop_all(bind=engine, tables=[
+        Subject.__table__,
+    ])
+
+    Base.metadata.create_all(bind=engine, tables=[
+        Subject.__table__,
+    ])
+
+    try:
+        print("Seeding Subjects...")
+        subjects_data = [
+            { "id": 101, "name": "Toán cao cấp" },
+            { "id": 102, "name": "Lập trình" },
+            { "id": 103, "name": "Vật lý" },
+            { "id": 104, "name": "Triết học" },
+            { "id": 666, "name": "7 day lên cao thủ" },
+            { "id": 336, "name": "Seminar"},
+            { "id": 366, "name": "Miscellaneous"}
+        ]
+        for sub_data in subjects_data:
+            if not db.query(Subject).filter_by(id=sub_data['id']).first():
+                db.add(Subject(**sub_data))
+        db.commit()
+        print("Committed Subjects.")
+    except Exception as e:
+        print(f"\n--- An error occurred during seeding ---")
+        print(e)
+        db.rollback()
+    finally:
+        db.close()
+        print("Database session closed.")
+
+def seed_enrollment(engine,db):
+    Base.metadata.drop_all(bind=engine, tables=[
+        Enrollment.__table__,
+    ])
+
+    Base.metadata.create_all(bind=engine, tables=[
+        Enrollment.__table__,
+    ])
+    try:
         print("Seeding Enrollments...")
         TUTEE_ID_1 = "2010002"
         enrollments_data = [
@@ -231,7 +222,7 @@ if __name__ == "__main__":
         ]
         for data in enrollments_data:
             if not db.query(Enrollment).filter_by(id=data['id']).first():
-                if db.query(Course).filter_by(id=data['courseId']).first(): # Check course exists
+                if db.query(Course).filter_by(id=data['courseId']).first():
                     db.add(Enrollment(
                         id=data['id'], tutee_id=data['tuteeId'], course_id=data['courseId'],
                         enrollment_date=datetime.fromisoformat(data['enrolledAt']),
@@ -240,11 +231,27 @@ if __name__ == "__main__":
                     print(f"Added Enrollment: id={data['id']}")
         db.commit()
         print("Committed Enrollments.")
+    except Exception as e:
+        print(f"\n--- An error occurred during seeding ---")
+        print(e)
+        db.rollback()
+    finally:
+        db.close()
+        print("Database session closed.")
 
+def seed_feeback_eval(engine,db):
+    Base.metadata.drop_all(bind=engine, tables=[
+        Feedback.__table__,
+        SessionEvaluation.__table__,
+    ])
 
-        # --- 5. Add Feedbacks (🔹 NEW SECTION) ---
-        print("Seeding Feedbacks...")
-        # We create mock feedback data *based on* your topics
+    Base.metadata.create_all(bind=engine, tables=[
+        Feedback.__table__,
+        SessionEvaluation.__table__,
+    ])
+    TUTEE_ID_1 = "2010002"
+    print("Seeding Feedbacks...")
+    try:
         feedback_data = [
             {
                 "id": 1, "user_id": TUTEE_ID_1,
@@ -259,7 +266,7 @@ if __name__ == "__main__":
                 
             },
             {
-                "id": 3, "user_id": "2210001", # A different user
+                "id": 3, "user_id": "2210001", 
                 "topic": "Yêu cầu tính năng mới",
                 "content": "Nên có tính năng chat realtime với giáo viên.",
                 "is_anonymous": True
@@ -279,12 +286,11 @@ if __name__ == "__main__":
         db.commit()
         print("Committed Feedbacks.")
 
-        # --- 6. Add Session Evaluations (Optional but good) ---
+
         print("Seeding Session Evaluations...")
-        
-        # Find the first session of course 1
+
         session_to_eval = db.query(CourseSession).filter_by(course_id=1, session_number=1).first()
-        # Find the first enrollment
+
         enrollment_to_eval = db.query(Enrollment).filter_by(id=1).first()
 
         if session_to_eval and enrollment_to_eval:
@@ -300,10 +306,24 @@ if __name__ == "__main__":
                 print("Added SessionEvaluation: id=1")
             db.commit()
             print("Committed Session Evaluations.")
+    except Exception as e:
+        print(f"\n--- An error occurred during seeding ---")
+        print(e)
+        db.rollback()
+    finally:
+        db.close()
+        print("Database session closed.")
 
+def seed_record(engine, db):
+    Base.metadata.drop_all(bind=engine, tables=[
+        MeetingRecord.__table__ ,
+    ])
+
+    Base.metadata.create_all(bind=engine, tables=[
+        MeetingRecord.__table__,
+    ])
+    try:
         print("Seeding Meeting Record...")
-        
-        # Find the course and tutor
         course1 = db.query(Course).filter_by(id=1).first()
         tutor1 = db.query(MututorUser).filter_by(id="2210001").first()
         
@@ -316,12 +336,9 @@ if __name__ == "__main__":
                     tutor_id=tutor1.id,
                     attendees="Tutor (2210001), 5 students",
                     discussion_points="Reviewed chapter 3 quiz results.",
-                    status=MeetingRecordStatus.PENDING
                 ))
                 db.commit()
                 print("Committed sample MeetingRecord.")
-        
-        print("\n--- Successfully seeded database! ---")
 
     except Exception as e:
         print(f"\n--- An error occurred during seeding ---")
@@ -330,3 +347,38 @@ if __name__ == "__main__":
     finally:
         db.close()
         print("Database session closed.")
+
+def seed_session(engine, db):
+    Base.metadata.drop_all(bind=engine, tables=[
+        MuSession.__table__,])
+    Base.metadata.create_all(bind=engine, tables=[
+        MuSession.__table__,])
+
+def seed_all(engine, db):
+    seed_user(engine,db)
+    seed_subject(engine,db)
+    seed_course(engine,db)
+    seed_enrollment(engine,db)
+    seed_feeback_eval(engine,db)
+    seed_record(engine,db)
+    seed_notification(engine,db)
+    #seed_session(engine,db)
+
+if __name__ == "__main__":
+    DATABASE_URL = "sqlite:///./app/models/mututor.db"
+
+    engine = create_engine(DATABASE_URL, echo=False)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    db = SessionLocal()
+    
+    # seed_enrollment(engine,db)
+    # seed_feeback_eval(engine,db)
+    # seed_notification(engine,db)
+    print("Seeding data...")
+
+    seed_record(engine,db)
+    #a= UserRole("tutor")
+
+
+
+    

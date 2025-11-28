@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 // Import hàm login từ API của chúng ta
-import { login as apiLogin } from "../api/api"; 
-
+import {
+  login as apiLogin,
+  me as apiMe,
+  logout as apiLogout,
+} from "../api/api";
 const AuthContext = createContext(null);
 
 export const useUser = () => {
@@ -23,25 +26,19 @@ export function AuthProvider({ children }) {
 
   // Khi app mount, check localStorage để "tự động login" nếu F5
   useEffect(() => {
-    const checkLoggedIn = async () => {
-      const storedToken = localStorage.getItem("authToken");
-      const storedUser = localStorage.getItem("user");
-      
-      if (storedToken && storedUser) {
-        try {
-          // Trong thực tế, bạn có thể gọi API /me để verify token ở đây
-          // Nhưng với mock, ta cứ tin tưởng localStorage tạm
-          setUser(JSON.parse(storedUser));
-        } catch (e) {
-          // Nếu JSON lỗi, xóa hết cho an toàn
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("user");
-        }
+    const verifySession = async () => {
+      try {
+        const resp = await apiMe();
+        console.log(`Session verified ${resp.data}`);
+        setUser(resp.data);
+      } catch (err) {
+        setUser(null);
+        console.log(err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-
-    checkLoggedIn();
+    verifySession();
   }, []);
 
   // Hàm login giờ gọi API
@@ -50,28 +47,30 @@ export function AuthProvider({ children }) {
     try {
       // Gọi API login
       const response = await apiLogin(bknetId, password, selectedRole);
-      const { user: userData, token } = response.data;
+      console.log(`${response.data.status}`);
 
-      // Lưu vào storage
-      localStorage.setItem("authToken", token);
-      localStorage.setItem("user", JSON.stringify(userData));
+      const me = await apiMe();
+      console.log(me.data);
+      setUser(me.data);
 
-      // Cập nhật state
-      setUser(userData);
-      
-      return { success: true }; // Trả về thành công cho Login Page biết
-
+      return { success: true };
     } catch (error) {
-      // Ném lỗi ra để Login Page bắt (catch) và hiển thị
       throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("authToken");
-    setUser(null);
-    // Có thể thêm chuyển trang về /login nếu cần
+  const logout = async () => {
+    try {
+      //!TODO: call to logout endpoint
+      const response = await apiLogout();
+      console.log(response.data);
+      setUser(null);
+      // Có thể thêm chuyển trang về /login nếu cần
+      // TODO HOW
+    } catch (err) {
+      setUser(null);
+      console.log(err);
+    }
   };
 
   // Giá trị context
