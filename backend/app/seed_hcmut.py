@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime, time, date, timedelta
 from hcmut_database import*
 
-
 def seed_sso(engine, db: Session):
     Base.metadata.drop_all(bind=engine, tables=[
         SSOUser.__table__,])
@@ -16,7 +15,16 @@ def seed_sso(engine, db: Session):
         "b.tran20@hcmut.edu.vn",
         "c.levan@hcmut.edu.vn",
         "d.phamthi@hcmut.edu.vn",
-        "e.hoang21@hcmut.edu.vn"
+        "e.hoang21@hcmut.edu.vn",
+        "f.vu22@hcmut.edu.vn",
+        "g.pham23@hcmut.edu.vn",
+        "h.duong21@hcmut.edu.vn",
+        "i.hoang22@hcmut.edu.vn",
+        "thuan.luong1808@gmail.com",
+        "dai.lechi@hcmut.edu.vn",
+        "huy.nguyen2504@hcmut.edu.vn",
+        "thinh.vovan@hcmut.edu.vn",
+        "dat.pham2005@hcmut.edu.vn"
     ]
 
     DEFAULT_PASS = "toi_yeu_mu"
@@ -57,12 +65,20 @@ def seed_lib(engine, db:Session):
     sample_resources = [
         # Materials
         {"id": 1, "name": "Giải tích 1 - Chương 1", "resource_type": ResourceType.MATERIAL, "file_type": FileType.PDF, "file_size": "2.1 MB", "uploader_id": "2210001"},
-        {"id": 2, "name": "Vật lý đại cương", "resource_type": ResourceType.MATERIAL, "file_type": FileType.DOCX, "file_size": "1.3 MB", "uploader_id": "1235"},
+        {"id": 2, "name": "Vật lý Đại cương", "resource_type": ResourceType.MATERIAL, "file_type": FileType.DOCX, "file_size": "1.3 MB", "uploader_id": "1235"},
         {"id": 3, "name": "Hóa học cơ sở", "resource_type": ResourceType.MATERIAL, "file_type": FileType.PPTX, "file_size": "2.8 MB", "uploader_id": "2210001"},
+        {"id": 4, "name": "Đại số tuyến tính - Slide", "resource_type": ResourceType.MATERIAL, "file_type": FileType.PDF, "file_size": "3.2 MB", "uploader_id": "b.tran20"},
+        {"id": 5, "name": "Lập trình C++ - Tài liệu", "resource_type": ResourceType.MATERIAL, "file_type": FileType.DOCX, "file_size": "1.9 MB", "uploader_id": "c.levan"},
         
         # Exams
-        {"id": 4, "name": "Đề thi Giải tích 1 - 2024", "resource_type": ResourceType.EXAM, "file_type": FileType.PDF, "file_size": "1.8 MB", "uploader_id": "2210001"},
-        {"id": 5, "name": "Đề thi Lập trình C - 2023", "resource_type": ResourceType.EXAM, "file_type": FileType.DOCX, "file_size": "1.2 MB", "uploader_id": "1235"},
+        {"id": 6, "name": "Đề thi Giải tích 1 - 2024", "resource_type": ResourceType.EXAM, "file_type": FileType.PDF, "file_size": "1.8 MB", "uploader_id": "2210001"},
+        {"id": 7, "name": "Đề thi Lập trình C - 2023", "resource_type": ResourceType.EXAM, "file_type": FileType.DOCX, "file_size": "1.2 MB", "uploader_id": "1235"},
+        {"id": 8, "name": "Đề thi Vật lý - Midterm 2024", "resource_type": ResourceType.EXAM, "file_type": FileType.PDF, "file_size": "2.1 MB", "uploader_id": "c.levan"},
+        {"id": 9, "name": "Đề thi Hóa học - Final 2024", "resource_type": ResourceType.EXAM, "file_type": FileType.PDF, "file_size": "1.5 MB", "uploader_id": "2210001"},
+        
+        # Solutions
+        {"id": 10, "name": "Đáp án Giải tích 1", "resource_type": ResourceType.EXAM, "file_type": FileType.PDF, "file_size": "2.5 MB", "uploader_id": "1235"},
+        {"id": 11, "name": "Giải bài tập Lập trình", "resource_type": ResourceType.MATERIAL, "file_type": FileType.DOCX, "file_size": "1.7 MB", "uploader_id": "c.levan"},
     ]
 
     print("--- Bắt đầu thêm dữ liệu mẫu vào HCMUT_Library ---")
@@ -126,7 +142,7 @@ def seed_user(engine, db:Session):
             "email": "b.tran20@hcmut.edu.vn",
             "role": HcmutUserRole.STUDENT,
             "status": AcademicStatus.ACTIVE,
-            "student_id": "2010002",
+            "student_id": "2110002",
             "department": "Khoa Kỹ thuật Cơ khí",
             "major": "Kỹ thuật Cơ khí"
         },
@@ -137,7 +153,7 @@ def seed_user(engine, db:Session):
             "status": AcademicStatus.ACTIVE,
             "staff_id": "1235",
             "department": "Khoa Khoa học và Kỹ thuật Máy tính",
-            "position": "Giảng viên" # Lecturer
+            "position": "Giảng viên"
         },
         {
             "full_name": "Phạm Thị D",
@@ -146,7 +162,7 @@ def seed_user(engine, db:Session):
             "status": AcademicStatus.ACTIVE,
             "staff_id": "0102",
             "department": "Ban Giám hiệu",
-            "position": "Ban quản lý" # Management
+            "position": "Ban quản lý"
         },
         {
             "full_name": "Hoàng Văn E",
@@ -156,6 +172,87 @@ def seed_user(engine, db:Session):
             "student_id": "2310003",
             "department": "Khoa Kỹ thuật Hóa học",
             "major": "Kỹ thuật Hóa học"
+        },
+        {
+            "full_name": "Vũ Văn F",
+            "email": "f.vu22@hcmut.edu.vn",
+            "role": HcmutUserRole.STUDENT,
+            "status": AcademicStatus.ACTIVE,
+            "student_id": "2210002",
+            "department": "Khoa Khoa học và Kỹ thuật Máy tính",
+            "major": "Khoa học Máy tính"
+        },
+        {
+            "full_name": "Phạm Văn G",
+            "email": "g.pham23@hcmut.edu.vn",
+            "role": HcmutUserRole.STUDENT,
+            "status": AcademicStatus.ACTIVE,
+            "student_id": "2310001",
+            "department": "Khoa Kỹ thuật Điện - Điện tử",
+            "major": "Kỹ thuật Điện"
+        },
+        {
+            "full_name": "Dương Thị H",
+            "email": "h.duong21@hcmut.edu.vn",
+            "role": HcmutUserRole.STAFF,
+            "status": AcademicStatus.ACTIVE,
+            "staff_id": "1105",
+            "department": "Khoa Khoa học và Kỹ thuật Máy tính",
+            "position": "Giảng Viên"
+        },
+        {
+            "full_name": "Hoàng Minh I",
+            "email": "i.hoang22@hcmut.edu.vn",
+            "role": HcmutUserRole.STUDENT,
+            "status": AcademicStatus.ACTIVE,
+            "student_id": "2210003",
+            "department": "Khoa Kinh tế Xây dựng",
+            "major": "Quản lý xây dựng"
+        },
+         {
+            "full_name": "Lương Minh Thuận",
+            "email": "thuan.luong1808@hcmut.edu.vn",
+            "role": HcmutUserRole.STUDENT,
+            "status": AcademicStatus.ACTIVE,
+            "student_id": "2313348",
+            "department": "Khoa Khoa học và Kỹ thuật Máy tính",
+            "major": "Khoa học máy tính"
+        },
+        {
+            "full_name": "Lê Chí Đại",
+            "email": "dai.lechi@hcmut.edu.vn",
+            "role": HcmutUserRole.STUDENT,
+            "status": AcademicStatus.ACTIVE,
+            "student_id": "2310621",
+            "department": "Khoa Khoa học và Kỹ thuật Máy tính",
+            "major": "Khoa học máy tính"
+        },
+        {
+            "full_name": "Nguyễn Quốc Huy",
+            "email": "huy.nguyen2504@hcmut.edu.vn",
+            "role": HcmutUserRole.STUDENT,
+            "status": AcademicStatus.ACTIVE,
+            "student_id": "2311209",
+            "department": "Khoa Khoa học và Kỹ thuật Máy tính",
+            "major": "Khoa học máy tính"
+        },
+        {
+            "full_name": "Phạm Lê Tiến Đạt",
+            "email": "dat.pham2005@hcmut.edu.vn",
+            "role": HcmutUserRole.STUDENT,
+            "status": AcademicStatus.ACTIVE,
+            "student_id": "2310687",
+            "department": "Khoa Khoa học và Kỹ thuật Máy tính",
+            "major": "Khoa học máy tính"
+        },
+        {
+            "full_name": "Võ Văn Thịnh",
+            "email": "thinh.vovan@hcmut.edu.vn",
+            "role": HcmutUserRole.STUDENT,
+            "status": AcademicStatus.ACTIVE,
+            "student_id": "2313318",
+            "department": "Khoa Khoa học và Kỹ thuật Máy tính",
+            "major": "Khoa học máy tính"
         }
     ]
 
@@ -232,10 +329,24 @@ def seed_room(engine, db:Session):
         
 
         room_data = [
-            {"name": "H6-301", "capacity": 50, "room_type": RoomType.STANDARD_ROOM},
-            {"name": "C6-510", "capacity": 80, "room_type": RoomType.LAB},
-            {"name": "GDH6", "capacity": 100, "room_type": RoomType.LECTURE_HALL},
+            {"name": "H1-201", "capacity": 35, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "H1-205", "capacity": 80, "room_type": RoomType.STANDARD_ROOM},
             {"name": "B1-202", "capacity": 50, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "B4-305", "capacity": 60, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "C5-301", "capacity": 50, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "C6-202", "capacity": 45, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "H2-201", "capacity": 90, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "H2-205", "capacity": 55, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "H2-506", "capacity": 40, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "H2-401", "capacity": 60, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "H3-204", "capacity": 45, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "H6-301", "capacity": 50, "room_type": RoomType.STANDARD_ROOM},
+            {"name": "H6-GDH6", "capacity": 100, "room_type": RoomType.LECTURE_HALL},
+            {"name": "C4-401", "capacity": 40, "room_type": RoomType.LAB},
+            {"name": "C6-302", "capacity": 30, "room_type": RoomType.LAB},
+            {"name": "C6-510", "capacity": 80, "room_type": RoomType.LAB},
+            {"name": "C5-402", "capacity": 25, "room_type": RoomType.LAB},
+            {"name": "B4-403", "capacity": 70, "room_type": RoomType.STANDARD_ROOM},
         ]
         
    
@@ -258,97 +369,126 @@ def seed_room(engine, db:Session):
         
         print("\nĐang thêm dữ liệu Lịch Đặt Phòng (Schedules)...")
         
-        nguoi_dat_gv = db.query(Staff).filter_by(id="1235").first()
+        staff_list = db.query(Staff).limit(3).all()
         
-        if not nguoi_dat_gv:
-            print("Lỗi: Không tìm thấy Giảng viên (Staff) với ID '1235'.")
-            print("Vui lòng chạy HCMUT_DATACORE.py TRƯỚC khi chạy file này.")
-        else:
-            print(f"Tìm thấy người đặt phòng mẫu: {nguoi_dat_gv.full_name} (ID: {nguoi_dat_gv.id})")
-            
-           
-            phong_h6_301 = rooms_in_db.get("H6-301")
-            phong_c6_510 = rooms_in_db.get("C6-510")
-            phong_gdh6 = rooms_in_db.get("GDH6")
-
+        if not staff_list:
+            print("Lỗi: Không tìm thấy Cán bộ (Staff). Vui lòng chạy seed_user() trước.")
+        else: #fix here
+            tutor_ids = {
+                "2210001": db.query(User).filter_by(id="2210001").first(),  # Course 1
+                "1235": db.query(User).filter_by(id="1235").first(),        # Course 2
+                "2313318": db.query(User).filter_by(id="2313318").first(),  # Course 3
+                "2310687": db.query(User).filter_by(id="2310687").first(),  # Course 4
+                "2310621": db.query(User).filter_by(id="2310621").first(),  # Course 5
+                "2313348": db.query(User).filter_by(id="2313348").first(),  # Course 6
+            }
 
             schedule_data = [
+                # Course 1 - Session 2
                 {
-                    "room_id": phong_h6_301.id, "user_id": nguoi_dat_gv.id,
-                    "date": date(2025, 11, 18), # Thứ 3
-                    "start_time": time(7, 30), "end_time": time(9, 30),
+                    "room_id": rooms_in_db.get("H1-201").id if rooms_in_db.get("H1-201") else None,
+                    "user_id": tutor_ids["2210001"].id if tutor_ids["2210001"] else None,
+                    "date": date(2025, 12, 4),
+                    "start_time": time(18, 0), "end_time": time(20, 0),
                     "status": RoomStatus.BOOKED,
-                    "note": "Giảng dạy: CO1001 - Nhập môn Lập trình"
+                    "note": "Kinh tế lượng for noob - Session 2"
                 },
+                # Course 2 - Session 2
                 {
-                    "room_id": phong_h6_301.id, "user_id": nguoi_dat_gv.id,
-                    "date": date(2025, 11, 20), # Thứ 5
-                    "start_time": time(9, 30), "end_time": time(11, 30),
+                    "room_id": rooms_in_db.get("B4-305").id if rooms_in_db.get("B4-305") else None,
+                    "user_id": tutor_ids["1235"].id if tutor_ids["1235"] else None,
+                    "date": date(2025, 11, 18),
+                    "start_time": time(19, 0), "end_time": time(21, 0),
                     "status": RoomStatus.BOOKED,
-                    
+                    "note": "Lập trình C++ - Session 2"
                 },
+                # Course 3 - Session 1
                 {
-                    "room_id": phong_c6_510.id, "user_id": nguoi_dat_gv.id,
-                    "date": date(2025, 11, 19), # Thứ 4
-                    "start_time": time(13, 30), "end_time": time(16, 30),
+                    "room_id": rooms_in_db.get("B1-202").id if rooms_in_db.get("B1-202") else None,
+                    "user_id": tutor_ids["2313318"].id if tutor_ids["2313318"] else None,
+                    "date": date(2025, 11, 12),
+                    "start_time": time(10, 0), "end_time": time(12, 0),
                     "status": RoomStatus.BOOKED,
-                   
+                    "note": "Giải tích 1 Nâng cao - Session 1"
                 },
+                # Course 4 - Session 1
                 {
-                    "room_id": phong_gdh6.id, "user_id": nguoi_dat_gv.id,
-                    "date": date(2025, 11, 21), # Thứ 6
-                    "start_time": time(9, 0), "end_time": time(11, 0),
+                    "room_id": rooms_in_db.get("C5-301").id if rooms_in_db.get("C5-301") else None,
+                    "user_id": tutor_ids["2310687"].id if tutor_ids["2310687"] else None,
+                    "date": date(2025, 11, 10),
+                    "start_time": time(14, 0), "end_time": time(16, 0),
                     "status": RoomStatus.BOOKED,
-                    "note": "Hội thảo chuyên đề"
+                    "note": "Vật lý Đại cương - Session 1"
+                },
+                # Course 4 - Session 2
+                {
+                    "room_id": rooms_in_db.get("C5-301").id if rooms_in_db.get("C5-301") else None,
+                    "user_id": tutor_ids["2310687"].id if tutor_ids["2310687"] else None,
+                    "date": date(2025, 11, 17),
+                    "start_time": time(14, 0), "end_time": time(16, 0),
+                    "status": RoomStatus.BOOKED,
+                    "note": "Vật lý Đại cương - Session 2"
+                },
+                # Course 5 - Session 1
+                {
+                    "room_id": rooms_in_db.get("H2-201").id if rooms_in_db.get("H2-201") else None,
+                    "user_id": tutor_ids["2310621"].id if tutor_ids["2310621"] else None,
+                    "date": date(2025, 11, 14),
+                    "start_time": time(15, 0), "end_time": time(17, 0),
+                    "status": RoomStatus.BOOKED,
+                    "note": "Triết học Phương Đông - Session 1"
+                },
+                # Course 6 - Session 1
+                {
+                    "room_id": rooms_in_db.get("H1-205").id if rooms_in_db.get("H1-205") else None,
+                    "user_id": tutor_ids["2313348"].id if tutor_ids["2313348"] else None,
+                    "date": date(2025, 11, 14),
+                    "start_time": time(15, 0), "end_time": time(17, 0),
+                    "status": RoomStatus.BOOKED,
+                    "note": "Học với Abe - Session 1"
+                },
+                # Course 6 - Session 2
+                {
+                    "room_id": rooms_in_db.get("C6-202").id if rooms_in_db.get("C6-202") else None,
+                    "user_id": tutor_ids["2313348"].id if tutor_ids["2313348"] else None,
+                    "date": date(2025, 11, 21),
+                    "start_time": time(15, 0), "end_time": time(17, 0),
+                    "status": RoomStatus.BOOKED,
+                    "note": "Học với Abe - Session 2"
                 },
             ]
-            
+
             for data in schedule_data:
+                if data["room_id"] and data["user_id"]:
+                    lich = db.query(RoomSchedule).filter_by(
+                        room_id=data["room_id"],
+                        date=data["date"],
+                        start_time=data["start_time"]
+                    ).first()
+                    
+                    if not lich:
+                        lich = RoomSchedule(**data)
+                        db.add(lich)
+                        print(f"  -> Đã thêm lịch đặt phòng: {data['note']}")
+                else:
+                    print(f"  -> Bỏ qua lịch (thiếu room hoặc user): {data['note']}")
 
-                lich = db.query(RoomSchedule).filter_by(
-                    room_id=data["room_id"],
-                    date=data["date"],
-                    start_time=data["start_time"]
-                ).first()
-                
-                if not lich:
-     
-                    lich = RoomSchedule(**data)
-                    db.add(lich)
-
-                    print(f"  -> Đã thêm lịch đặt phòng: {phong_h6_301.name} "
-                          f"ngày {data['date']} "
-                          f"({data['status'].value})")
-            
             db.commit()
             print("--- Đã lưu dữ liệu Lịch Đặt Phòng ---")
-
-
-        print("\n--- Xác minh dữ liệu từ CSDL (Bảng Lịch Đặt Phòng) ---")
-
-        all_schedules = db.query(RoomSchedule).join(Room).join(User).all()
-        
-        if not all_schedules:
-            print("Không tìm thấy lịch đặt phòng nào.")
-
-        for lich in all_schedules:
-            print(f"  -> [Lịch ID: {lich.id}]")
-            print(f"     Phòng: {lich.room.name} (Sức chứa: {lich.room.capacity})")
-            print(f"     Người đặt: {lich.user.full_name}")
-            print(f"     Thời gian: {lich.date.strftime('%d/%m/%Y')} "
-                  f"từ {lich.start_time.strftime('%H:%M')} "
-                  f"đến {lich.end_time.strftime('%H:%M')}")
-            print(f"     Trạng thái: {lich.status.value}")
-            print(f"     Mục đích: {lich.note}\n")
-
     except Exception as e:
-        print(f"\n--- ĐÃ XẢY RA LỖI ---")
+        print(f"\n--- An error occurred during seeding ---")
         print(e)
         db.rollback()
     finally:
-
+        
         db.close()
         print("--- Đã đóng phiên CSDL (Coordinator) ---")
+
+def seed_all(engine, db):
+    seed_sso(engine, db)
+    seed_user(engine, db)
+    seed_lib(engine, db)
+    seed_room(engine, db)
 
 if __name__ == "__main__":
     DATABASE_URL = "sqlite:///./app/hcmut_database/hcmut.db"
@@ -356,6 +496,5 @@ if __name__ == "__main__":
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
 
-    seed_room(engine,db)
     print("Seeding data...")
-
+    seed_all(engine, db)

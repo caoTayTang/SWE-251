@@ -341,7 +341,7 @@ async def modify_course(
                     user_id=enrollment.tutee_id,
                     type=NotificationType.SCHEDULE_CHANGE,
                     title=f"Course Updated: {updated_course.title}",
-                    content=f"The course '{updated_course.title}' has been updated by the tutor. Please check the course details.",
+                    content=f"Khóa học '{updated_course.title}' đã được chỉnh sửa bởi tutor. Bấm vào để xem chi tiết.",
                     related_id=course_id
                 )
                 await manager.send_personal_message({
@@ -482,7 +482,7 @@ async def delete_course(
                 user_id=enrollment.tutee_id,
                 type=NotificationType.ENROLLMENT_CANCELLED,
                 title=f"Course Cancelled: {course_title}",
-                content=f"The course '{course_title}' has been cancelled by the tutor.",
+                content=f"Khóa học '{course_title}' đã bị hủy bởi tutor.",
                 related_id=course_id
             )
             await manager.send_personal_message({
@@ -639,7 +639,7 @@ async def enroll_course(
             user_id=course.tutor_id,
             type=NotificationType.ENROLLMENT_SUCCESS,
             title=f"New Enrollment: {course.title}",
-            content=f"Student {current_user.user_id} has enrolled in your course '{course.title}'.",
+            content=f"Học viên {current_user.user_id} đã tham gia khóa học '{course.title}' của bạn.",
             related_id=course_id
         )
         await manager.send_personal_message({
@@ -657,7 +657,7 @@ async def enroll_course(
             user_id=tutee_id,
             type=NotificationType.ENROLLMENT_SUCCESS,
             title=f"Enrollment Confirmed: {course.title}",
-            content=f"You have successfully enrolled in '{course.title}'.",
+            content=f"Đã tham gia khóa học '{course.title}' thành công.",
             related_id=course_id
         )
 
@@ -674,7 +674,7 @@ async def enroll_course(
 
         return {
             "status": "success",
-            "message": "Successfully enrolled in course",
+            "message": "Enroll succeed",
             "enrollment_id": enrollment.id,
             "course": {
                 "id": course.id,
@@ -728,7 +728,7 @@ async def unregister_course(
             user_id=course.tutor_id,
             type=NotificationType.ENROLLMENT_CANCELLED,
             title=f"Student Dropped: {course.title}",
-            content=f"Student {current_user.user_id} has dropped from your course '{course.title}'. Reason: {drop_reason}",
+            content=f"Học viên {current_user.user_id} đã hủy tham gia khóa học '{course.title}' của bạn. Lý do: {drop_reason}",
             related_id=course_id
         )
         
@@ -747,7 +747,7 @@ async def unregister_course(
             user_id=tutee_id,
             type=NotificationType.ENROLLMENT_CANCELLED,
             title=f"Unenrolled: {course.title}",
-            content=f"You have been unenrolled from '{course.title}'.",
+            content=f"Hủy tham gia khóa học '{course.title}' thành công.",
             related_id=course_id
         )
         
