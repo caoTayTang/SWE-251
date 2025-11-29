@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Filter, BookOpen } from "lucide-react";
 import CourseCard from "./CourseCard";
 import { deleteCourse } from "../../../api/api";
@@ -13,6 +14,8 @@ export default function CourseList({
   onEnroll,
   onUnenroll,
 }) {
+  const navigate = useNavigate();
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredCourses = courses.filter((course) =>
@@ -29,6 +32,14 @@ export default function CourseList({
   };
 
   const isTutor = user?.role === "tutor";
+
+  const handleCourseClick = (courseId) => {
+    if (isTutor) {
+      navigate(`/tutor/courses/${courseId}`);
+    } else {
+      navigate(`/tutee/courses/${courseId}`);
+    }
+  };
 
   return (
     <div>
@@ -79,15 +90,20 @@ export default function CourseList({
       ) : (
         <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredCourses.map((course) => (
-            <CourseCard
+            <div
               key={course.id}
-              course={course}
-              onEdit={startEdit}
-              onDelete={handleDelete}
-              isTutor={isTutor}
-              onEnroll={onEnroll}
-              onUnenroll={onUnenroll}
-            />
+              onClick={() => handleCourseClick(course.id)}
+              className="cursor-pointer"
+            >
+              <CourseCard
+                course={course}
+                onEdit={startEdit}
+                onDelete={handleDelete}
+                isTutor={isTutor}
+                onEnroll={onEnroll}
+                onUnenroll={onUnenroll}
+              />
+            </div>
           ))}
         </div>
       )}

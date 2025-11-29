@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import MeetingNoteButton from "./MeetingNoteButton";
+// import MeetingNoteButton from "./MeetingNoteButton";
 import {
   Calendar,
   MapPin,
@@ -188,9 +188,9 @@ export default function CourseCard({
               <Trash2 size={14} /> Xóa
             </button>
 
-            <div className="col-span-2">
+            {/* <div className="col-span-2">
               <MeetingNoteButton courseId={course.id} className="w-full" />
-            </div>
+            </div> */}
           </div>
         ) : (
           /* ================= GIAO DIỆN TUTEE ================= */

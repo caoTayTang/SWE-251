@@ -22,7 +22,7 @@ def get_resource(
     Get library resources with optional filters for type and search keyword.
     All authenticated users can access.
     """
-    print(f"LIB: {type} {q}")
+    print(f"LIB: {type=} {q=}")
     try:
         if type and q:
             try:
