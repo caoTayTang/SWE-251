@@ -140,9 +140,10 @@ def create_session_evaluation(
         if not enrollment or enrollment.status != EnrollmentStatus.ENROLLED:
             raise HTTPException(status_code=403, detail="You must be enrolled in this course to evaluate sessions")   
 
-        session = course_session_service.get_by_course_snum(course_id, session_id)
+        # session = course_session_service.get_by_course_snum(course_id, session_id)
+        session = course_session_service.get_by_id(session_id)
         if not session:
-            raise HTTPException(status_code=404, detail="Session not found")
+            raise HTTPException(status_code=404, detail=f"Session with ID {session_id} not found")
 
         existing_evaluations = session_evaluation_service.get_by_enrollment(enrollment.id)
         for eval in existing_evaluations:

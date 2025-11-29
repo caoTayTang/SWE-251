@@ -27,6 +27,7 @@ def get_courses(
     if current_user.role != UserRole('tutor'):
         raise HTTPException(status_code=403, detail="Not authorized, requires TUTOR role")
     
+    print("Current tutor id", current_user.user_id)
     courses = course_service.get_by_tutor(current_user.user_id)
 
     courses_data = []
@@ -374,6 +375,73 @@ async def modify_course(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update course: {str(e)}")
 
+@router.get("/courses/{course_id}")
+async def get_course_by_id(
+    course_id: int,
+    current_user: MuSession = Depends(get_current_user_from_session)
+):
+    """Get details of a specific course by ID including sessions, resources, and enrollment stats"""
+    
+    # 1. Fetch Course
+    course = course_service.get_by_id(course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    # 2. Fetch Sessions
+    sessions = course_session_service.get_by_course(course.id)
+    sessions_data = []
+    for session in sessions:
+        sessions_data.append({
+            "id": session.id,
+            "session_number": session.session_number,
+            "session_date": session.session_date.isoformat(),
+            "start_time": str(session.start_time),
+            "end_time": str(session.end_time),
+            "format": session.format.value,
+            "location": session.location
+        })
+
+    # 3. Fetch Resources
+    course_resources = course_resource_service.get_by_course(course.id)
+    resources_data = []
+    for resource_link in course_resources:
+        resources_data.append({
+            "id": resource_link.id,
+            "resource_id": resource_link.resource_id
+        })
+
+    # 4. Calculate Enrollment Statistics
+    enrollments = enroll_service.get_by_course(course.id)
+    enrolled_count = sum(1 for e in enrollments if e.status == EnrollmentStatus.ENROLLED)
+    
+    # 5. Check User-specific Enrollment Status (if Tutee)
+    is_enrolled = False
+    if current_user.role == UserRole('tutee'):
+        user_enrollment = enroll_service.get_by_tutee_and_course(current_user.user_id, course.id)
+        is_enrolled = user_enrollment is not None and user_enrollment.status == EnrollmentStatus.ENROLLED
+
+    # 6. Construct Response
+    return {
+        "status": "success",
+        "course": {
+            "id": course.id,
+            "title": course.title,
+            "description": course.description,
+            "cover_image_url": course.cover_image_url,
+            "tutor_id": course.tutor_id,
+            "subject_id": course.subject_id,
+            "level": course.level.value,
+            "max_students": course.max_students,
+            "enrolled_students": enrolled_count,
+            "available_slots": course.max_students - enrolled_count,
+            "status": course.status.value,
+            "created_at": course.created_at.isoformat(),
+            "updated_at": course.updated_at.isoformat(),
+            "is_enrolled": is_enrolled,
+            "sessions": sessions_data,
+            "resources": resources_data
+        }
+    }
 
 @router.delete("/courses/{course_id}")
 async def delete_course(

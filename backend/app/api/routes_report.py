@@ -20,7 +20,7 @@ def track_tutor_class(
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
     """Get overview of all courses with statistics (admin only)"""
-    if current_user.role != UserRole('admin'):
+    if current_user.role == UserRole('tutee'):
         raise HTTPException(status_code=403, detail="Not authorized, requires ADMIN role")
     
     try:
@@ -70,7 +70,8 @@ def track_specific_class(
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
     """Get detailed tracking for a specific course (admin only)"""
-    if current_user.role != UserRole('admin'):
+    # if current_user.role != UserRole('admin'):
+    if current_user.role == UserRole('tutee'):
         raise HTTPException(status_code=403, detail="Not authorized, requires ADMIN role")
     
     try:
@@ -133,35 +134,104 @@ def track_all_tutees(
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
     """Get overview of all tutees with statistics (admin only)"""
-    if current_user.role != UserRole('admin'):
+    # if current_user.role != UserRole('admin'):
+    if current_user.role == UserRole('tutee'):
         raise HTTPException(status_code=403, detail="Not authorized, requires ADMIN role")
     
     try:
+        # 1. Lấy danh sách Enrollments
         all_enroll = enrollment_service.get_all()
+        # Lấy danh sách ID duy nhất (distinct)
         all_tutees = list(set([e.tutee_id for e in all_enroll]))
+        
         tutees_data = []
-        for tutee in all_tutees:
-            enrollments = enrollment_service.get_by_tutee(tutee)
+
+        for tutee_id in all_tutees:
+            # Lấy các enrollments của tutee này
+            enrollments = enrollment_service.get_by_tutee(tutee_id)
+            
+            # Tính toán thống kê
             active_enrollments = [e for e in enrollments if e.status == EnrollmentStatus.ENROLLED]
             completed_enrollments = [e for e in enrollments if e.status == EnrollmentStatus.COMPLETED]
             dropped_enrollments = [e for e in enrollments if e.status == EnrollmentStatus.DROPPED]
-            user = hcmut_api.get_student_by_id(tutee)
-            tutees_data.append({
-                "id": tutee,
-                "name": user.full_name,
+            
+            # 2. Xử lý gọi API bên ngoài an toàn (Fail-safe)
+            user_full_name = "Unknown User" # Giá trị mặc định
+            try:
+                user = hcmut_api.get_student_by_id(tutee_id)
+                if user:
+                    user_full_name = user.full_name
+            except Exception as err:
+                # Ghi nhận lỗi nhưng không làm sập luồng chính
+                print(f"Error fetching user {tutee_id}: {err}")
+                user_full_name = f"Student #{tutee_id}"
+
+            # 3. Khởi tạo dictionary 'tmp'
+            tmp = {
+                "id": tutee_id,
+                "name": user_full_name, # Sử dụng biến an toàn đã xử lý ở trên
                 "total_enrollments": len(enrollments),
                 "active_courses": len(active_enrollments),
                 "completed_courses": len(completed_enrollments),
                 "dropped_courses": len(dropped_enrollments)
-            })
+            }
+            
+            # 4. In log kiểm tra (Đặt sau khi biến tmp đã có giá trị)
+            print(f"Processed tutee data: {tmp}")
+            
+            tutees_data.append(tmp)
         
         return {
             "status": "success",
             "total_tutees": len(tutees_data),
             "tutees": tutees_data
         }
+
     except Exception as e:
+        # In stack trace để debug dễ hơn
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to get tutee tracking: {str(e)}")
+    # try:
+    #     all_enroll = enrollment_service.get_all()
+    #     all_tutees = list(set([e.tutee_id for e in all_enroll]))
+    #     tutees_data = []
+    #     for tutee in all_tutees:
+    #         print(f"Which one make my system down: {tutee}")
+    #         enrollments = enrollment_service.get_by_tutee(tutee)
+    #         print(len(enrollments))
+    #         active_enrollments = [e for e in enrollments if e.status == EnrollmentStatus.ENROLLED]
+    #         print(len(active_enrollments))
+    #         completed_enrollments = [e for e in enrollments if e.status == EnrollmentStatus.COMPLETED]
+    #         print(len(completed_enrollments))
+    #         dropped_enrollments = [e for e in enrollments if e.status == EnrollmentStatus.DROPPED]
+    #         print(len(dropped_enrollments))
+    #         try:
+    #             user = hcmut_api.get_student_by_id(tutee)
+    #         except Exception as err:
+    #             print(err)
+
+
+    #         print(f"My tmp {tmp} - ", tmp)
+    #         tmp = {
+    #             "id": tutee,
+    #             "name": user.full_name,
+    #             "total_enrollments": len(enrollments),
+    #             "active_courses": len(active_enrollments),
+    #             "completed_courses": len(completed_enrollments),
+    #             "dropped_courses": len(dropped_enrollments)
+    #         }
+    #         tutees_data.append(tmp)
+    #         print(6)
+        
+    #     return {
+    #         "status": "success",
+    #         "total_tutees": len(tutees_data),
+    #         "tutees": tutees_data
+    #     }
+
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=f"Failed to get tutee tracking: {str(e)}")
 
 @router.get("/tutor/tracking/tutees/{id}")
 def track_specific_tutee(
@@ -169,7 +239,8 @@ def track_specific_tutee(
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
     """Get detailed tracking for a specific tutee (admin only)"""
-    if current_user.role != UserRole('admin'):
+    # if current_user.role != UserRole('admin'):
+    if current_user.role == UserRole('tutee'):
         raise HTTPException(status_code=403, detail="Not authorized, requires ADMIN role")
     
     try:        
@@ -213,7 +284,8 @@ def create_report(
     current_user: MuSession = Depends(get_current_user_from_session)
 ):
     """Generate and save a custom report (admin only)"""
-    if current_user.role != UserRole('admin'):
+    # if current_user.role != UserRole('admin'):
+    if current_user.role == UserRole('tutee'):
         raise HTTPException(status_code=403, detail="Not authorized, requires ADMIN role")
     
     report_data = data.get('reportData')

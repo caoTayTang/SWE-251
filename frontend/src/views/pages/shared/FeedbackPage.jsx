@@ -37,21 +37,18 @@ export default function FeedbackPage() {
     if (!topic || !content.trim()) return;
 
     setLoading(true);
-    setError(""); // Reset lỗi cũ
+    setError("");
 
     try {
-      // Gọi API thật (giả lập)
       await submitFeedback({
-        userId: user?.id, // Gửi kèm ID người gửi
+        userId: user?.id,
         topic: topic,
         content: content,
       });
 
-      // Nếu thành công:
       setDone(true);
       setTimeout(() => navigate(-1), 2000);
     } catch (err) {
-      // Nếu lỗi:
       console.error("Lỗi gửi feedback:", err);
       setError("Gửi thất bại. Vui lòng thử lại sau.");
     } finally {
@@ -81,9 +78,7 @@ export default function FeedbackPage() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">
-              Phản hồi / Đánh giá
-            </h1>
+            <h1 className="text-xl font-bold text-gray-800">Feedback</h1>
             <p className="text-sm text-gray-600">Xin chào, {user?.name}</p>
           </div>
           <button

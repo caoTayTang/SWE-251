@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+
 import CourseList from "../../components/Course/CouseList";
 import CourseForm from "../../components/Course/CourseForm";
 import { getMyCourses } from "../../../api/api";
@@ -17,6 +18,7 @@ export default function TutorCourseDashboard() {
     setLoading(true);
     try {
       const response = await getMyCourses(user.id);
+      console.log("Fetched courses:", response.data);
       setCourses(response.data.courses);
     } catch (error) {
       console.error("Fail to load courses:", error);
