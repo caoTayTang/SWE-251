@@ -12,7 +12,7 @@ from ..hcmut_database import *
 router = APIRouter()
 
 #POST /api/rooms
-@router.post("/room")
+@router.post("/rooms")
 def get_free_room(
     data: dict = Body(...),
     current_user: MuSession = Depends(get_current_user_from_session)
