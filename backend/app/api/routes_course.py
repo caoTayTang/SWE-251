@@ -101,28 +101,6 @@ def create_course(
                 raise HTTPException(
                     status_code=400,
                     detail={"message": "Schedule validation failed","errors": schedule_result['errors']} )
-            
-            if session_data.get('format', 'offline') == 'online': continue
-            session_date = datetime.strptime(session_data.get('session_date'), '%Y-%m-%d').date()
-            start_time = datetime.strptime(session_data.get('start_time'), '%H:%M').time()
-            end_time = datetime.strptime(session_data.get('end_time'), '%H:%M').time()
-            room_name = session_data.get('location')
-            room = hcmut_api.get_room_by_name(room_name)
-            if not room: 
-                print("NOT ROOM")
-                raise HTTPException(
-                    status_code=400,
-                    detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room not found for room {room_name}"})
-            
-            capacity = course_data.get('max_students')
-            room_result = hcmut_api.can_book_room(room.id,session_date,start_time,end_time,capacity=capacity if capacity is not None else None)
-            
-            if not room_result:
-                other_room = [room.name for room in hcmut_api.get_free_rooms_by_datetime(session_date,start_time,end_time)]
-                print("ROOM RESULT NOT VALID")
-                raise HTTPException(
-                    status_code=400,    
-                    detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room validation fails, other free room: {other_room}"} )
 
     if course_resources:
         resource_validation = hcmut_api.validate_course_resources(course_resources)      
@@ -165,9 +143,9 @@ def create_course(
                     location=location
                 )
                 if format == CourseFormat.OFFLINE:
-                    ret = hcmut_api.book_room(location, current_user.user_id, session_date, start_time, end_time, f"Booked room for course {course_data.get('title')}")
+                    ret = hcmut_api.book_room(location, current_user.user_id, session_date, start_time, end_time, f"{course_data.get('title')} - Session {session_data.get('session_number')}")
                     if not ret:
-                        raise HTTPException(status_code=400,detail={ "message": "Invalid resource IDs","errors": f"Failed to book room: {location}"})
+                        raise HTTPException(status_code=400,detail={ "message": "Failed","errors": f"Failed to book room: {location}"})
                 created_sessions.append({
                     "id": session.id,
                     "session_number": session.session_number,
@@ -220,7 +198,7 @@ async def modify_course(
     course_id = data.get('id')
     updated_data = data.get('updatedData')
     updated_session_data = data.get('updatedSessionData',None)
-    course_session_id = data.get('courseSessionId',None) 
+    course_session_number = data.get('courseSessionId',None)  #relative session_number for each course, not session_id key in db
     course_resources = data.get('courseResources', []) 
     
     if not course_id or not updated_data:
@@ -234,8 +212,8 @@ async def modify_course(
         raise HTTPException(status_code=403, detail="You can only modify your own courses")
     
     old_session = None
-    if course_session_id:
-        old_session = course_session_service.get_by_course_session(course_id, course_session_id)
+    if course_session_number:
+        old_session = course_session_service.get_by_course_session(course_id, course_session_number)
         if not old_session:
             raise HTTPException(status_code=403, detail="Course Session not found")
 
@@ -244,27 +222,6 @@ async def modify_course(
             raise HTTPException(
                 status_code=400,
                 detail={"message": "Schedule validation failed","errors": schedule_result['errors']} )
-        
-        if updated_session_data.get('format') == 'offline':
-            session_date = datetime.strptime(updated_session_data.get('session_date'), '%Y-%m-%d').date()
-            start_time = datetime.strptime(updated_session_data.get('start_time'), '%H:%M').time()
-            end_time = datetime.strptime(updated_session_data.get('end_time'), '%H:%M').time()
-            room_name = updated_session_data.get('location')
-            room = hcmut_api.get_room_by_name(room_name)
-            if not room: 
-                raise HTTPException(
-                    status_code=400,
-                    detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room not found for room {room_name}"})
-            
-            capacity = updated_data.get('max_students')
-            room_result = hcmut_api.can_book_room(room.id,session_date,start_time,end_time,exclude_session=old_session,capacity=capacity if capacity is not None else None)
-            
-            if not room_result:
-                old_room = None if old_session.format == CourseFormat.ONLINE else old_session.location
-                other_room = [room.name for room in hcmut_api.get_free_rooms_by_datetime(session_date,start_time,end_time,old_room)]
-                raise HTTPException(
-                    status_code=400,
-                    detail={"message": f"Session {session_date} ({start_time}-{end_time}): Room validation failed, other free room: {other_room}"} )
         
     if course_resources:
         resource_validation = hcmut_api.validate_course_resources(course_resources) 
@@ -288,7 +245,7 @@ async def modify_course(
             raise HTTPException(status_code=500, detail="Failed to update course")
 
         updated_session = None
-        if course_session_id:         
+        if course_session_number:         
             try:
                 session_date = datetime.strptime(updated_session_data.get('session_date'), '%Y-%m-%d').date()
                 start_time = datetime.strptime(updated_session_data.get('start_time'), '%H:%M').time()
@@ -310,7 +267,7 @@ async def modify_course(
                     hcmut_api.cancel_booking(old_schedule.id, current_user.user_id)
                     
                 if format == CourseFormat.OFFLINE:
-                    ret = hcmut_api.book_room(location, current_user.user_id, session_date, start_time, end_time, f"Booked room for course {updated_data.get('title')}")
+                    ret = hcmut_api.book_room(location, current_user.user_id, session_date, start_time, end_time,f"{updated_data.get('title')} - Session {updated_session_data.get('session_number')}")
                     if not ret:
                         raise HTTPException(status_code=400,detail={ "message": "Invalid resource IDs","errors": f"Failed to book room: {location}"})
             except Exception as e:

@@ -11,6 +11,83 @@ from ..hcmut_database import *
 
 router = APIRouter()
 
+#POST /api/rooms
+@router.post("/room")
+def get_free_room(
+    data: dict = Body(...),
+    current_user: MuSession = Depends(get_current_user_from_session)
+):
+    """
+    Get all free rooms for a specific date and time range.
+    Only tutors can access this endpoint.
+    
+    Request body:
+    {
+        "date": "2024-12-01",  # Format: yyyy-mm-dd
+        "startTime": "09:00",  # Format: HH:MM
+        "endTime": "11:00",    # Format: HH:MM
+        "capacity": 30         # Optional: minimum capacity needed
+        "exclude": "H1-204"    # Optional: for modify course, exclude old room from conflict room list.
+    }
+    """
+    if current_user.role != UserRole('tutor'):
+        raise HTTPException(status_code=403, detail="Not authorized, requires TUTOR role")
+
+    date_str = data.get('date')
+    start_time_str = data.get('startTime')
+    end_time_str = data.get('endTime')
+    capacity = data.get('capacity')  # Optional
+    exclude_room = data.get('exclude')
+
+    if not date_str or not start_time_str or not end_time_str:
+        raise HTTPException(
+            status_code=400, 
+            detail="Missing required fields: date, startTime, or endTime"
+        )
+    
+    try:
+        free_rooms = hcmut_api.get_free_rooms_by_datetime(
+            target_date=date_str,
+            start_time=start_time_str,
+            end_time=end_time_str,
+            capacity=capacity,
+            exclude_room= exclude_room
+        )
+        
+
+        rooms_data = []
+        for room in free_rooms:
+            rooms_data.append({
+                "id": room.id,
+                "name": room.name,
+                "capacity": room.capacity,
+                "room_type": room.room_type.value
+            })
+        
+        return {
+            "status": "success",
+            "count": len(rooms_data),
+            "filters": {
+                "date": date_str,
+                "startTime": start_time_str,
+                "endTime": end_time_str,
+                "capacity": capacity
+            },
+            "rooms": rooms_data
+        }
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid date or time format: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to get free rooms: {str(e)}"
+        )
+
+
 # GET /api/library?type={mode}&q={keyword}
 @router.get("/library")
 def get_resource(

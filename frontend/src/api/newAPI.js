@@ -922,6 +922,39 @@ const API_ROUTES = {
       output: null,
       description: 'WebSocket connection for real-time notifications'
     }
+  },
+  rooms: {
+    getFreeRooms: {
+      method: 'POST',
+      path: '/api/room',
+      requiresAuth: true,
+      requiresRole: 'tutor',
+      input: {
+        date: 'string', // YYYY-MM-DD
+        startTime: 'string', // HH:MM
+        endTime: 'string', // HH:MM
+        capacity: 'number', // optional, minimum capacity required
+        exclude: 'string' //optional, for modify course session only
+      },
+      output: {
+        status: 'success',
+        count: 'number',
+        filters: {
+          date: 'string',
+          startTime: 'string',
+          endTime: 'string',
+          capacity: 'number | null'
+        },
+        rooms: [
+          {
+            id: 'number',
+            name: 'string',
+            capacity: 'number',
+            room_type: 'string' // 'lecture_hall' | 'standard_room' | 'lab' | 'meeting_room'
+          }
+        ]
+      }
+    }
   }
 };
 

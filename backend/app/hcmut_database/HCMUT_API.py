@@ -263,21 +263,33 @@ class HCMUT_API:
         ).first()
 
     def get_free_rooms_by_datetime(self, target_date: date, 
-                                    start_time: time, 
-                                    end_time: time, exclude_room = None) -> List[Room]:
+                                start_time: time, 
+                                end_time: time, 
+                                exclude_room: Optional[str] = None,
+                                capacity: Optional[int] = None) -> List[Room]:
         """
         Get all rooms that are FREE for a specific date and time range.
         
         Args:
-            target_date: Date to check
-            start_time: Start time of desired booking
-            end_time: End time of desired booking
+            target_date: Date to check (can be string 'yyyy-mm-dd' or date object)
+            start_time: Start time of desired booking (can be string 'HH:MM' or time object)
+            end_time: End time of desired booking (can be string 'HH:MM' or time object)
+            exclude_room: Room name to exclude from booking check (optional)
+            capacity: Minimum capacity required (optional)
             
         Returns:
             List of available Room objects
-        """
+    """
+        if isinstance(target_date, str):
+            target_date = datetime.strptime(target_date, '%Y-%m-%d').date()
+        if isinstance(start_time, str):
+            start_time = datetime.strptime(start_time, '%H:%M').time()
+        if isinstance(end_time, str):
+            end_time = datetime.strptime(end_time, '%H:%M').time()
+        
+        exclude_room_obj = None
         if exclude_room:
-            exclude_room = self.get_room_by_name(exclude_room)
+            exclude_room_obj = self.get_room_by_name(exclude_room)
 
         with self.db_session() as session:
             booked_rooms = session.query(RoomSchedule.room_id).filter(
@@ -291,15 +303,18 @@ class HCMUT_API:
                     )
                 )
             ).distinct().all()
-   
-
+    
             booked_room_ids = [room_id for (room_id,) in booked_rooms]
-            if exclude_room and exclude_room.id in booked_room_ids:
-                booked_room_ids.remove(exclude_room.id)
 
-            free_rooms = session.query(Room).filter(
-                ~Room.id.in_(booked_room_ids)
-            ).all()
+            if exclude_room_obj and exclude_room_obj.id in booked_room_ids:
+                booked_room_ids.remove(exclude_room_obj.id)
+
+            query = session.query(Room).filter(~Room.id.in_(booked_room_ids))
+            
+            if capacity is not None:
+                query = query.filter(Room.capacity >= capacity)
+            
+            free_rooms = query.all()
             
             return free_rooms
     
